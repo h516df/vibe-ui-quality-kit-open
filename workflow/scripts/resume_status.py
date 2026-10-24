@@ -231,7 +231,9 @@ def focus_context(root, query):
                 scope='Tracked working-tree locations and declaration hints; not a complete dependency map.')
 
 
-def inspect(root, snapshot_path=None, github=False, focus=None):
+def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=False):
+    if skip_release and not (github or snapshot_path):
+        raise ValueError('Skip-release requires GitHub recovery or an existing connector snapshot.')
     root = Path(root).resolve()
     git = lambda *args: run(root, ['git', *args]).strip()
     if Path(git('rev-parse', '--show-toplevel')).resolve() != root:
@@ -249,6 +251,8 @@ def inspect(root, snapshot_path=None, github=False, focus=None):
                   product_acceptance='not_verified', writer_ownership='not_verified',
                   guidance='Read project entrypoints and the existing coordination registry; PR titles, checks and recency do not establish task ownership or product acceptance.')
     release_reason = None
+    if skip_release:
+        result['delivery'] = dict(status='not_requested', next_action='read_latest_release_before_delivery')
     if focus is not None:
         result['context'] = focus_context(root, focus)
     if snapshot_path:
@@ -267,16 +271,17 @@ def inspect(root, snapshot_path=None, github=False, focus=None):
             return result
         snapshot = dict(repository=repository, observed_at=dt.datetime.now(dt.timezone.utc).isoformat(),
                         complete=len(rows) < 100, pull_requests=rows)
-        try:
-            snapshot['latest_release'] = json.loads(run(root, ['gh', 'api', f'repos/{repository}/releases/latest',
-                                                              '--jq', RELEASE_FIELDS]))
-        except (OSError, ValueError, subprocess.SubprocessError):
-            snapshot['latest_release'] = None
-            release_reason = 'query_failed'
+        if not skip_release:
+            try:
+                snapshot['latest_release'] = json.loads(run(root, ['gh', 'api', f'repos/{repository}/releases/latest',
+                                                                  '--jq', RELEASE_FIELDS]))
+            except (OSError, ValueError, subprocess.SubprocessError):
+                snapshot['latest_release'] = None
+                release_reason = 'query_failed'
     else:
         return result
     result['github'] = summarize_snapshot(snapshot, repository, branch, head, bool(status))
-    if 'latest_release' in snapshot:
+    if 'latest_release' in snapshot and not skip_release:
         if snapshot['latest_release'] is None:
             result['delivery'] = dict(status='unavailable', reason=release_reason or 'not_visible_or_missing',
                                       next_action='inspect_release_with_existing_connector')
@@ -320,7 +325,8 @@ def recovery_brief(result):
 
 
 def resume(args):
-    result = inspect(args.target, args.github_json, args.github, getattr(args, 'focus', None))
+    result = inspect(args.target, args.github_json, args.github, getattr(args, 'focus', None),
+                     getattr(args, 'skip_release', False))
     result['brief'] = recovery_brief(result)
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(result, ensure_ascii=False, separators=(',', ':')))
     return 2 if result['brief']['remote_read_incomplete'] else 0
