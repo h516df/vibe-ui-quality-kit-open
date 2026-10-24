@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Read-only project recovery hints. No checkout, fetch, task dispatch or model calls."""
 import datetime as dt
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -173,7 +174,64 @@ def summarize_release(data, repository):
     return result
 
 
-def inspect(root, snapshot_path=None, github=False):
+def focus_context(root, query):
+    """Bounded locations/declaration hints from tracked working-tree source; no bodies."""
+    if not isinstance(query, str) or not 1 <= len(query.strip()) <= 200:
+        raise ValueError('Focus must contain 1-200 characters.')
+    terms = list(dict.fromkeys(re.findall(r'\w{2,}', query.casefold())))
+    if not terms or len(terms) > 8:
+        raise ValueError('Use 1-8 focused words or symbol names.')
+    root = Path(root).resolve()
+    argv = ['git', 'grep', '-l', '-z', '-I', '-i', '-F']
+    for term in terms:
+        argv += ['-e', term]
+    found = subprocess.run(argv + ['--', '.'], cwd=root, capture_output=True, timeout=20,
+                           env=dict(os.environ, GIT_OPTIONAL_LOCKS='0', GIT_TERMINAL_PROMPT='0'))
+    if found.returncode not in (0, 1):
+        raise ValueError('Read-only focus search failed; inspect the existing repository.')
+    extensions = {'.py', '.js', '.jsx', '.ts', '.tsx', '.kt', '.java', '.swift', '.rs',
+                  '.go', '.cs', '.c', '.h', '.cpp', '.vue', '.svelte', '.html', '.css', '.md'}
+    paths = []
+    for raw in found.stdout.split(b'\0'):
+        if not raw:
+            continue
+        path = raw.decode('utf-8')
+        target = root / path
+        if (target.suffix.casefold() in extensions and not target.is_symlink()
+                and target.resolve().is_relative_to(root) and target.is_file()):
+            paths.append(path)
+    paths.sort(key=lambda p: (-sum(t in p.casefold() for t in terms), p.casefold()))
+    declaration = re.compile(r'^\s*(?:(?:export|public|private|protected|internal|open|abstract|override|'
+                             r'suspend|inline|data|sealed|async)\s+)*'
+                             r'(?:class|interface|object|fun|function|def|fn|struct|enum)\s+([^\W\d]\w*)')
+    files = []
+    for path in paths[:8]:
+        target = root / path
+        item = dict(path=path, declarations=[])
+        try:
+            size = target.stat().st_size
+            item['bytes'] = size
+            if size > 128 * 1024:
+                item['status'] = 'requires_targeted_read'
+            else:
+                content = target.read_bytes()
+                item.update(status='observed', sha256=hashlib.sha256(content).hexdigest())
+                if target.suffix.casefold() != '.md':
+                    for number, line in enumerate(content.decode('utf-8-sig').splitlines(), 1):
+                        match = declaration.match(line[:240])
+                        if match:
+                            item['declarations'].append(dict(name=match[1][:80], line=number))
+                    item['declarations'].sort(key=lambda d: (-sum(t in d['name'].casefold() for t in terms), d['line']))
+                    item['declarations'] = item['declarations'][:6]
+        except (OSError, UnicodeError):
+            item.update(status='requires_targeted_read', declarations=[])
+        files.append(item)
+    return dict(status='observed' if paths else 'no_matches', matched_files=len(paths),
+                truncated=len(paths) > 8, files=files,
+                scope='Tracked working-tree locations and declaration hints; not a complete dependency map.')
+
+
+def inspect(root, snapshot_path=None, github=False, focus=None):
     root = Path(root).resolve()
     git = lambda *args: run(root, ['git', *args]).strip()
     if Path(git('rev-parse', '--show-toplevel')).resolve() != root:
@@ -191,6 +249,8 @@ def inspect(root, snapshot_path=None, github=False):
                   product_acceptance='not_verified', writer_ownership='not_verified',
                   guidance='Read project entrypoints and the existing coordination registry; PR titles, checks and recency do not establish task ownership or product acceptance.')
     release_reason = None
+    if focus is not None:
+        result['context'] = focus_context(root, focus)
     if snapshot_path:
         snapshot = read_snapshot(snapshot_path)
     elif github:
@@ -260,7 +320,7 @@ def recovery_brief(result):
 
 
 def resume(args):
-    result = inspect(args.target, args.github_json, args.github)
+    result = inspect(args.target, args.github_json, args.github, getattr(args, 'focus', None))
     result['brief'] = recovery_brief(result)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 2 if result['brief']['remote_read_incomplete'] else 0
