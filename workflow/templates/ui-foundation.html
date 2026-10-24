@@ -1,80 +1,110 @@
 <!doctype html>
-<html lang="zh-CN" data-design="calm" data-mode="light">
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>界面基础样例 · 阅读清单</title>
+<html lang="zh-CN" data-mode="light">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拾页 · 阅读工作区预览</title>
 <link rel="stylesheet" href="ui-foundation.css">
-<body class="vibe-demo">
-<header class="topbar">
-  <div class="wordmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 4h6l3 2 3-2h6v15h-6l-3 2-3-2H3zM12 6v15"/></svg>阅读清单</div>
-  <div class="options">
-    <label>方向 <select id="design"><option value="calm">精致内容</option><option value="utility">清爽工具</option></select></label>
-    <label>外观 <select id="mode"><option value="light">浅色</option><option value="dark">深色</option></select></label>
-  </div>
-</header>
-<main>
-  <p class="eyebrow">留一点时间，给喜欢的事</p>
-  <h1>值得慢慢读的内容</h1>
-  <p class="intro">把偶然遇见的好内容留在这里，下一次打开，接着读。</p>
-  <div class="toolbar">
-    <div class="filters" role="group" aria-label="阅读状态">
-      <button type="button" data-filter="all" aria-pressed="true">全部</button>
-      <button type="button" data-filter="unread" aria-pressed="false">未读</button>
-      <button type="button" data-filter="read" aria-pressed="false">已读</button>
-    </div>
-    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg><input id="search" type="search" aria-label="搜索清单" placeholder="搜索标题或摘要"></label>
-  </div>
-  <section class="library" aria-label="阅读内容">
-    <article class="entry" data-status="unread">
-      <button class="entry-open" type="button" aria-haspopup="dialog">
-        <div class="cover sand"><svg viewBox="0 0 240 160" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M40 135h160M70 135V48h75v87M145 78h35v57M81 60h20v31H81zM114 60h20v31h-20zM81 105h20v30M114 105h20v30M180 110h18v25"/><circle cx="184" cy="43" r="14"/><path d="M28 135V94m-11 12 11-20 11 20M28 115l-12-4m12 14 14-8"/></svg></div>
-        <div class="entry-body"><div class="meta"><span>生活观察</span><span>未读 · 6 分钟</span></div><h2>城市里的安静角落</h2><p class="summary">走慢一点，重新发现每天经过的街道。</p></div>
-      </button>
-    </article>
-    <article class="entry" data-status="unread">
-      <button class="entry-open" type="button" aria-haspopup="dialog">
-        <div class="cover sage"><svg viewBox="0 0 240 160" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M33 133h175M50 25h135v108H50zM55 30h125v64H55zM117 30v64M55 63h125M75 111h92M85 111v22m72-22v22M190 133V91m-9 0h19l-4 17h-11z"/><path d="m164 31-38 63m54-50-30 50" opacity=".5"/></svg></div>
-        <div class="entry-body"><div class="meta"><span>空间与设计</span><span>未读 · 8 分钟</span></div><h2>一间小工作室的光线</h2><p class="summary">不靠添置更多，让空间变得更舒服。</p></div>
-      </button>
-    </article>
-    <article class="entry" data-status="read">
-      <button class="entry-open" type="button" aria-haspopup="dialog">
-        <div class="cover slate"><svg viewBox="0 0 240 160" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M36 59h167M36 116h167M49 59v77m141-77v77M64 59V27h13v32m7 0V23h13v36m7 0V34h13v25M137 59V35h37v24M62 116V89h45v27m32 0V78h26v38m8 0V88h13v28"/><path d="M145 35v24m6-24v24M69 97h31m42-13h20"/></svg></div>
-        <div class="entry-body"><div class="meta"><span>日常整理</span><span>已读 · 5 分钟</span></div><h2>把常用物品放回顺手的位置</h2><p class="summary">一套容易坚持的秩序，从一次顺手开始。</p></div>
-      </button>
-    </article>
+<body>
+<svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4h6l2 2 2-2h6v15h-6l-2 2-2-2H4zM12 6v15"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M6 4h12v17l-6-4-6 4z"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></symbol>
+<symbol id="i-archive" viewBox="0 0 24 24"><path d="M5 9v11h14V9M9 13h6"/><rect x="3" y="4" width="18" height="5" rx="1.5"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-page" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6m-6 4h6"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v12l-5 5H5zM14 21v-5h5M8 9h8m-8 4h5"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5Z"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="m14 5-7 7 7 7M7 12h14"/></symbol>
+</defs></svg>
+<div class="workspace">
+  <aside class="sidebar" aria-label="工作区导航">
+    <div class="brand"><span class="brand-mark"><svg><use href="#i-book"/></svg></span><span>拾页<span class="brand-caption">阅读工作区</span></span></div>
+    <nav class="navigation" aria-label="内容分类">
+      <button data-nav="all" aria-pressed="true"><svg><use href="#i-grid"/></svg><span>所有内容</span><span class="nav-count" data-count="all"></span></button>
+      <button data-nav="unread" aria-pressed="false"><svg><use href="#i-save"/></svg><span>稍后阅读</span><span class="nav-count" data-count="unread"></span></button>
+      <button data-nav="starred" aria-pressed="false"><svg><use href="#i-star"/></svg><span>星标收藏</span><span class="nav-count" data-count="starred"></span></button>
+      <button data-nav="archive" aria-pressed="false"><svg><use href="#i-archive"/></svg><span>已归档</span><span class="nav-count" data-count="archive"></span></button>
+    </nav>
+    <p class="sidebar-label">收藏集</p>
+    <nav class="navigation collections" aria-label="收藏集">
+      <button data-nav="design" aria-pressed="false"><span class="collection-dot blue"></span><span>设计灵感</span></button>
+      <button data-nav="life" aria-pressed="false"><span class="collection-dot sage"></span><span>日常与生活</span></button>
+    </nav>
+    <div class="sidebar-bottom"><span class="local-indicator"><i></i>本地界面预览</span><p>合成内容 · 无网络请求</p><button id="theme" class="theme-button" aria-pressed="false"><svg><use href="#i-moon"/></svg><span>深色外观</span></button></div>
+  </aside>
+  <section class="library" aria-labelledby="library-title">
+    <div class="mobile-header"><span class="mobile-brand"><svg><use href="#i-book"/></svg>拾页</span><select id="mobile-nav" aria-label="切换内容分类"><option value="all">所有内容</option><option value="unread">稍后阅读</option><option value="starred">星标收藏</option><option value="archive">已归档</option><option value="design">设计灵感</option><option value="life">日常与生活</option></select><button id="mobile-theme" class="icon-button" aria-label="切换深浅色"><svg><use href="#i-moon"/></svg></button></div>
+    <header class="library-heading"><h1 id="library-title">所有内容</h1><span id="total" class="total">5</span><button class="add-button" id="add"><svg><use href="#i-plus"/></svg>添加</button></header>
+    <div class="search-wrap"><svg><use href="#i-search"/></svg><input id="search" type="search" aria-label="搜索内容" placeholder="搜索标题或内容"><kbd aria-hidden="true">/</kbd></div>
+    <div class="type-filters" role="group" aria-label="内容类型"><button data-kind="all" aria-pressed="true">全部</button><button data-kind="article" aria-pressed="false">文章</button><button data-kind="note" aria-pressed="false">笔记</button></div>
+    <div class="list-caption"><span>最近收藏</span><span id="visible-count"></span></div>
+    <div id="items" class="items" aria-label="内容清单"></div>
+    <div id="empty" class="empty" hidden><svg><use href="#i-search"/></svg><h2>没有找到内容</h2><p>换个关键词，或回到全部内容。</p><button id="clear">查看全部内容</button></div>
+    <footer class="library-footer"><span id="status" role="status" aria-live="polite">已就绪</span><span>预览不保存个人数据</span></footer>
   </section>
-  <p id="empty" class="empty" hidden>没有找到对应内容。试试其他关键词，或切回“全部”。</p>
-  <p id="result-status" role="status" aria-live="polite">共 3 篇内容</p>
-  <footer>离线界面参考 · 所有内容与插图均为合成样例。搜索、筛选、详情可操作；不保存个人数据。</footer>
-</main>
-<dialog id="detail" aria-labelledby="detail-title"><h2 id="detail-title"></h2><p id="detail-description"></p><p>这是用于检查中文排版、导航与返回的样例详情。实际产品应接入自己的内容和功能。</p><form method="dialog"><button>返回清单</button></form></dialog>
+  <section class="reader" aria-label="内容预览">
+    <header class="reader-toolbar"><button id="back" class="back-button" aria-label="返回清单"><svg><use href="#i-back"/></svg><span>清单</span></button><span class="reader-breadcrumb"><svg><use href="#i-page"/></svg><span id="reader-kind">文章预览</span></span><div class="reader-actions"><button id="star" class="icon-button" aria-label="添加星标" aria-pressed="false"><svg><use href="#i-star"/></svg></button><button id="archive" class="icon-button" aria-label="归档内容"><svg><use href="#i-archive"/></svg></button><button id="read" class="read-button"><svg><use href="#i-check"/></svg><span>标为已读</span></button></div></header>
+    <div id="reader-scroll" class="reader-scroll"><article class="article"><div class="article-category" id="category">设计灵感</div><h2 id="article-title">让界面更安静的四个细节</h2><div class="article-meta"><span id="article-meta">文章 · 约 6 分钟</span><span class="meta-dot">·</span><span>合成阅读样例</span></div><p class="article-lead" id="article-lead"></p><div class="article-body" id="article-body"></div><div class="article-end"><span></span><svg><use href="#i-book"/></svg><span></span></div><p class="reader-note">这是可操作的界面预览，内容与收藏状态仅保留在本次页面中。</p></article></div>
+    <div class="reader-empty" id="reader-empty" hidden>选择一条内容，开始阅读。</div>
+  </section>
+</div>
+<dialog id="new-dialog"><form id="add-form"><div class="dialog-heading"><h2>添加内容</h2><button type="button" id="cancel" class="icon-button" aria-label="关闭添加窗口">×</button></div><p class="dialog-note">添加到本次预览，刷新后恢复合成样例。</p><label>标题<input name="title" id="new-title" required maxlength="100" autocomplete="off"></label><label>类型<select name="kind"><option value="note">笔记</option><option value="article">文章</option></select></label><label>内容<textarea name="text" rows="5" maxlength="3000" placeholder="写下想留住的内容"></textarea></label><div class="dialog-actions"><button type="button" id="cancel-bottom">取消</button><button type="submit" class="primary">添加到清单</button></div></form></dialog>
 <script>
-const root = document.documentElement;
-const entries = [...document.querySelectorAll('.entry')];
-let active = 'all';
-function filter() {
-  const query = document.querySelector('#search').value.trim().toLocaleLowerCase();
-  let count = 0;
-  for (const entry of entries) {
-    entry.hidden = !((active === 'all' || entry.dataset.status === active) && entry.textContent.toLocaleLowerCase().includes(query));
-    if (!entry.hidden) count++;
+const icons = {article:'i-page',note:'i-note'};
+const body = '<h3>先让内容站到前面</h3><p>当标题、说明、按钮都想吸引注意时，真正要读的东西反而被挤到了后面。先确定这一屏最重要的事情，再安排其他信息的位置。</p><p>阅读工具里，内容应当是主角。导航保持安静，常用操作留在手边，让视线能自然地从清单走到正文。</p><h3>把一致性留给细节</h3><ul><li>相同的动作，用相同的控件与反馈。</li><li>文字有清楚的主次，但不靠缩小字号留白。</li><li>颜色用来表达选择和状态，而不是填满界面。</li><li>空白、加载和失败，也属于完整的体验。</li></ul><blockquote>好的界面，应该让你先注意到想做的事。</blockquote><h3>在真实使用中判断</h3><p>放入接近日常长度的中文，打开一篇内容，再返回原来的位置。能读清、能找到、能继续，才算走完了这条路径。</p>';
+let data = [
+{id:'a1',title:'让界面更安静的四个细节',lead:'少一点同时出现的强调，让内容、操作和留白各自待在合适的位置。',kind:'article',collection:'design',time:'6',read:false,starred:false,archived:false,body},
+{id:'a2',title:'留白是信息之间的距离',lead:'关于文字层级、间距与阅读节奏的一页视觉笔记。',kind:'note',collection:'design',time:'3',read:false,starred:true,archived:false,text:'留白不是把页面变空，而是让相关内容靠近，让不同层级之间有足够的距离。先组织关系，再决定边框、背景和装饰。'},
+{id:'a3',title:'沿着熟悉的街道，走慢一点',lead:'重新看一看每天经过、却很少停留的地方。',kind:'article',collection:'life',time:'8',read:false,starred:false,archived:false,text:'在每天熟悉的路线上，试着留意一束光、一扇窗，或一小片安静的树影。不需要抵达特别的地方，也能找到值得记录的细节。'},
+{id:'a4',title:'一份容易坚持的日常清单',lead:'把事情放到顺手的位置，少一点来回寻找。',kind:'note',collection:'life',time:'4',read:true,starred:false,archived:false,text:'真正有用的清单不需要很长。保留今天最重要的几件事，给每件事一个明确的下一步，完成之后就把注意力交还给生活。'},
+{id:'a5',title:'细节里的秩序感',lead:'从一个按钮到整套界面，让相似的事情看起来相似。',kind:'article',collection:'design',time:'5',read:true,starred:true,archived:false,text:'统一的图标、稳定的字阶和清楚的反馈，会一点点形成熟悉感。这种秩序让人不必重新学习每个页面。'},
+{id:'a6',title:'过去一周，值得留下的事',lead:'一份已经整理完的简短回顾。',kind:'note',collection:'life',time:'2',read:true,starred:false,archived:true,text:'整理完成的内容可以暂时收起。需要时再从归档找回，让当前清单保持清楚。'}
+];
+let nav='all',kind='all',selected='a1';
+const $=s=>document.querySelector(s);
+const names={all:'所有内容',unread:'稍后阅读',starred:'星标收藏',archive:'已归档',design:'设计灵感',life:'日常与生活'};
+function inNav(item,value){if(value==='archive')return item.archived;if(item.archived)return false;if(value==='unread')return !item.read;if(value==='starred')return item.starred;if(value==='design'||value==='life')return item.collection===value;return true;}
+function rows(){const q=$('#search').value.trim().toLocaleLowerCase();return data.filter(item=>inNav(item,nav)&&(kind==='all'||item.kind===kind)&&(item.title+' '+item.lead+' '+(item.text||'')).toLocaleLowerCase().includes(q));}
+function icon(name){return '<svg aria-hidden="true"><use href="#'+name+'"/></svg>';}
+function render(){
+  const visible=rows();
+  if(!visible.some(x=>x.id===selected))selected=visible[0]?.id??null;
+  $('#library-title').textContent=names[nav];$('#mobile-nav').value=nav;
+  $('#total').textContent=data.filter(x=>inNav(x,nav)).length;
+  $('#visible-count').textContent=visible.length+' 条内容';$('#empty').hidden=visible.length!==0;
+  document.querySelectorAll('[data-nav]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.nav===nav)));
+  document.querySelectorAll('[data-count]').forEach(e=>e.textContent=data.filter(x=>inNav(x,e.dataset.count)).length);
+  document.querySelectorAll('[data-kind]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.kind===kind)));
+  $('#items').replaceChildren();
+  for(const item of visible){const b=document.createElement('button');b.className='item'+(item.id===selected?' selected':'');b.dataset.id=item.id;b.setAttribute('aria-pressed',String(item.id===selected));
+    b.innerHTML='<span class="item-meta">'+icon(icons[item.kind])+'<span class="item-kind"></span><span class="item-star">'+(item.starred?icon('i-star'):'')+'</span></span><span class="item-title"></span><span class="item-excerpt"></span><span class="item-footer"><span class="item-collection"></span><span class="item-state"></span></span>';
+    b.querySelector('.item-kind').textContent=item.kind==='note'?'笔记':'文章';b.querySelector('.item-title').textContent=item.title;b.querySelector('.item-excerpt').textContent=item.lead;b.querySelector('.item-collection').textContent=names[item.collection];b.querySelector('.item-state').textContent=(item.read?'已读':'未读')+' · '+item.time+' 分钟';
+    b.addEventListener('click',()=>{selected=item.id;render();document.body.dataset.reading='true';$('#reader-scroll').scrollTop=0;if(innerWidth<=900)$('#article-title').focus();});$('#items').append(b);
   }
-  document.querySelector('#empty').hidden = count !== 0;
-  document.querySelector('#result-status').textContent = `共 ${count} 篇内容`;
+  const item=data.find(x=>x.id===selected);$('#reader-empty').hidden=!!item;$('#reader-scroll').hidden=!item;$('.reader-actions').hidden=!item;
+  if(!item)return;
+  $('#category').textContent=names[item.collection];$('#article-title').textContent=item.title;$('#article-title').tabIndex=-1;
+  $('#reader-kind').textContent=item.kind==='note'?'笔记预览':'文章预览';$('#article-meta').textContent=(item.kind==='note'?'笔记':'文章')+' · 约 '+item.time+' 分钟';$('#article-lead').textContent=item.lead;
+  $('#article-body').replaceChildren();if(item.body)$('#article-body').innerHTML=item.body;else{const p=document.createElement('p');p.textContent=item.text;$('#article-body').append(p);}
+  $('#star').setAttribute('aria-pressed',String(item.starred));$('#star').setAttribute('aria-label',item.starred?'取消星标':'添加星标');$('#archive').setAttribute('aria-label',item.archived?'取消归档':'归档内容');$('#archive').classList.toggle('active',item.archived);$('#read span').textContent=item.read?'已读':'标为已读';$('#read').classList.toggle('is-read',item.read);
 }
-document.querySelector('#search').addEventListener('input', filter);
-document.querySelector('#design').addEventListener('change', e => root.dataset.design = e.target.value);
-document.querySelector('#mode').addEventListener('change', e => root.dataset.mode = e.target.value);
-for (const button of document.querySelectorAll('[data-filter]')) button.addEventListener('click', () => {
-  active = button.dataset.filter;
-  for (const other of document.querySelectorAll('[data-filter]')) other.setAttribute('aria-pressed', String(other === button));
-  filter();
-});
-for (const entry of entries) entry.querySelector('.entry-open').addEventListener('click', () => {
-  document.querySelector('#detail-title').textContent = entry.querySelector('h2').textContent;
-  document.querySelector('#detail-description').textContent = entry.querySelector('.summary').textContent;
-  document.querySelector('#detail').showModal();
-});
+function selectNav(value){nav=value;kind='all';$('#search').value='';render();delete document.body.dataset.reading;}
+document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>selectNav(b.dataset.nav)));
+$('#mobile-nav').addEventListener('change',e=>selectNav(e.target.value));
+document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.kind;render();}));
+$('#search').addEventListener('input',render);$('#clear').addEventListener('click',()=>selectNav('all'));
+$('#star').addEventListener('click',()=>{const item=data.find(x=>x.id===selected);if(!item)return;item.starred=!item.starred;$('#status').textContent=item.starred?'已添加星标':'已取消星标';render();});
+$('#read').addEventListener('click',()=>{const item=data.find(x=>x.id===selected);if(!item)return;item.read=!item.read;$('#status').textContent=item.read?'已标为已读':'已标为未读';render();});
+$('#archive').addEventListener('click',()=>{const item=data.find(x=>x.id===selected);if(!item)return;item.archived=!item.archived;$('#status').textContent=item.archived?'已归档，可在导航中找回':'已恢复到所有内容';render();if(!selected)delete document.body.dataset.reading;});
+$('#back').addEventListener('click',()=>{delete document.body.dataset.reading;document.querySelector('.item.selected')?.focus();});
+function theme(){const dark=document.documentElement.dataset.mode!=='dark';document.documentElement.dataset.mode=dark?'dark':'light';$('#theme').setAttribute('aria-pressed',String(dark));$('#theme span').textContent=dark?'浅色外观':'深色外观';}
+$('#theme').addEventListener('click',theme);$('#mobile-theme').addEventListener('click',theme);
+$('#add').addEventListener('click',()=>$('#new-dialog').showModal());for(const id of ['#cancel','#cancel-bottom'])$(id).addEventListener('click',()=>$('#new-dialog').close());
+$('#add-form').addEventListener('submit',e=>{e.preventDefault();const form=e.currentTarget;const title=form.elements.title.value.trim();if(!title){$('#new-title').setCustomValidity('请输入标题');$('#new-title').reportValidity();return;}const text=form.elements.text.value.trim();const item={id:'new-'+Date.now(),title,lead:text||'本次预览中添加的内容。',text,kind:form.elements.kind.value,collection:'design',time:'1',read:false,starred:false,archived:false};data.unshift(item);selected=item.id;selectNav('all');$('#new-dialog').close();form.reset();$('#status').textContent='已添加到本次预览，刷新后恢复样例';});
+$('#new-title').addEventListener('input',()=>$('#new-title').setCustomValidity(''));
+document.addEventListener('keydown',e=>{if($('#new-dialog').open)return;const editing=/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName);if((e.key==='/'&&!editing)||((e.ctrlKey||e.metaKey)&&e.key==='k')){e.preventDefault();delete document.body.dataset.reading;$('#search').focus();}});
+render();
 </script>
 </body></html>
