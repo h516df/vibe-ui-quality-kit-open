@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 24,
+  "revision": 25,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -271,10 +271,10 @@
       ],
       "base": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
       "head": "0754cc2bb7413daf531c81503102ee1c48d894c8",
-      "status": "ready",
+      "status": "integrated",
       "generation": 1,
       "lease_until": 0,
-      "updated_at": 1792821420,
+      "updated_at": 1792821544,
       "history": [],
       "handoff": "Five files: replace rejected gallery with reading workspace; original synthetic UI and screenshot. Twenty browser behavior/layout checks passed, actual screenshots inspected, packaged relative CSS/action checked, privacy zero. User aesthetic acceptance remains open."
     },
@@ -290,10 +290,10 @@
       ],
       "base": "0754cc2bb7413daf531c81503102ee1c48d894c8",
       "head": "0754cc2bb7413daf531c81503102ee1c48d894c8",
-      "status": "active",
+      "status": "integrated",
       "generation": 1,
-      "lease_until": 1792828620,
-      "updated_at": 1792821420,
+      "lease_until": 0,
+      "updated_at": 1792821544,
       "history": [],
       "receipt": {
         "source_sha": "0754cc2bb7413daf531c81503102ee1c48d894c8",
@@ -307,6 +307,13 @@
             "source_sha": "0754cc2bb7413daf531c81503102ee1c48d894c8"
           }
         ]
+      },
+      "publication": {
+        "source_sha": "0754cc2bb7413daf531c81503102ee1c48d894c8",
+        "merge_sha": "5c64b797011bd60bf4aa969b35508a6b4e9debdb",
+        "url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/5",
+        "ci_url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/5/checks",
+        "probe_scope": "Synthetic reading-workspace browser preview, real screenshots and targeted interactions. User aesthetic approval and native products remain unverified."
       }
     }
   },
@@ -328,7 +335,7 @@
       "integrator": "oss-design-integrate-20261024"
     },
     "ui-redesign-20261024": {
-      "status": "sealed",
+      "status": "completed",
       "integrator": "ui-redesign-integrate-20261024"
     }
   }
