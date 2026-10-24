@@ -49,6 +49,24 @@
 - [templates/ci.yml.example](templates/ci.yml.example)：可选的轻量 CI 示例。需要按项目补上依赖安装、测试命令及路径过滤，不会自动启用发布或收费服务。
 - [tests](tests)：接入幂等、冲突不覆盖、未配置测试不报通过、检查失败传播、远端核对等自检。
 
+## Git 传输故障后的源码恢复
+
+普通 Git 仍是首选。确认 TLS、代理或连接故障后，代理可使用现有 GitHub CLI 认证，通过 GitHub Git 数据 API 恢复同一源码；不需要用户改网络或重新登录。401/403、权限、安全拒绝和分支保护继续按原要求处理，不能用本入口绕过。
+
+`recover-git` 默认只检查本地并输出计划，不联网、不写工作区。代理核对目标后加 `--apply` 执行；这不是额外的用户审批步骤。已接入项目使用 `cloud/workflow.py`，工具库使用下列入口：
+
+```bash
+python3 workflow/scripts/workflow.py recover-git --target <repo> --operation publish --expected-head <source-sha> --apply
+python3 workflow/scripts/workflow.py recover-git --target <repo> --operation sync --expected-head <old-local-sha> --remote-head <reviewed-merge-sha> --apply
+```
+
+- 发布限已有公开仓库、干净工作区、一个未签名的非合并源码提交，父提交须为当前默认分支。只创建新的任务分支，不发布默认分支，不覆盖已有分支。支持 UTF-8 普通文件和删除，限 100 文件、单文件 1 MiB、合计 5 MiB；二进制、子模块和已签名源码提交沿原 Git 路径处理，不能剥掉签名。
+- 发送前扫描本次提交中的新增内容和提交说明，忽略未提交配置；创建远端 ref 前核对完整 tree 和原 commit SHA。相同分支已存在且 SHA 一致时直接返回 `already_present`，不再写入。API 回执不明先读回 ref，不盲重放。
+- 合并同步需要明确的已审阅 SHA、干净的默认分支和本地已有的树及父提交。缺少合并对象时，只从 GitHub 已验证签名的 payload 重建并核对原始哈希，再执行快进；不 reset，不选择或合并 PR。重复执行返回 `already_current`，不写远端。
+- 默认继承现有网络。已确认直连可用才按需加 `--network direct`，只改变该子进程环境；CLI 不在 PATH 时用 `--gh <existing-gh>`，不会安装、登录或扩大权限。正常发布前的隐私、许可证和项目验收仍适用。
+
+协议依据：[GitHub Git Trees API](https://docs.github.com/en/rest/git/trees)。本入口仅处理上述源码传输恢复，不表示安装包发行或目标设备验收已完成。
+
 ## 云端接入
 
 在已授权的云端目标仓库内，先查看计划，再应用：
@@ -58,7 +76,7 @@ python3 /path/to/kit/workflow/scripts/workflow.py adopt --target /path/to/projec
 python3 /path/to/kit/workflow/scripts/workflow.py adopt --target /path/to/project --apply
 ```
 
-脚本添加 `docs/AI_WORKFLOW.md`、`cloud/workflow.py`、`cloud/coordinate.py`、`cloud/verify_release.py`、`cloud/resume_status.py`、`docs/DELIVERY.md`、`.ai-workflow.json`；向 AGENTS 追加链接，根 HANDOFF 仅在缺失时创建。既有文件发生冲突会在写入前终止。不会初始化 Git、推送、安装依赖、运行恢复工具或发布服务。
+脚本添加 `docs/AI_WORKFLOW.md`、`cloud/workflow.py`、`cloud/coordinate.py`、`cloud/verify_release.py`、`cloud/resume_status.py`、`cloud/git_recovery.py`、`cloud/privacy_scan.py`、`docs/DELIVERY.md`、`.ai-workflow.json`；向 AGENTS 追加链接，根 HANDOFF 仅在缺失时创建。既有文件发生冲突会在写入前终止。不会初始化 Git、推送、安装依赖、运行恢复工具或发布服务。
 
 接入后，由代理根据已有命令填写 `.ai-workflow.json`。`quick` 是语法/配置等廉价检查；`core` 是实际主要功能。没有配置检查、当前层没有选中检查、或 core 没有功能检查时返回 2 / NOT CONFIGURED，不能以空白检查冒充通过。配置中的命令与项目脚本同样属于可信代码，执行前须审阅。
 
