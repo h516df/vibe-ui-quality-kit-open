@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 8,
+  "revision": 9,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -107,8 +107,26 @@
       "status": "active",
       "generation": 1,
       "lease_until": 1792822621,
-      "updated_at": 1792815421,
-      "history": []
+      "updated_at": 1792815427,
+      "history": [],
+      "receipt": {
+        "source_sha": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
+        "members": {
+          "lean-recovery-20261024": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e"
+        },
+        "checks": [
+          {
+            "name": "70 regression checks including default full read and one-query read-only code-stage recovery",
+            "status": "passed",
+            "source_sha": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e"
+          },
+          {
+            "name": "Four-file diff, privacy zero and semantic equality of compact/pretty JSON",
+            "status": "passed",
+            "source_sha": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e"
+          }
+        ]
+      }
     }
   },
   "batches": {
