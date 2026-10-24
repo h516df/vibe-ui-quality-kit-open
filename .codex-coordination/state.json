@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 1,
+  "revision": 2,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -18,12 +18,13 @@
         "workflow/tests/test_resume_status.py"
       ],
       "base": "b81210de1c892caf96c16c68f3d0f605c4016059",
-      "head": "b81210de1c892caf96c16c68f3d0f605c4016059",
-      "status": "active",
+      "head": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
+      "status": "ready",
       "generation": 1,
-      "lease_until": 1792821029,
-      "updated_at": 1792813829,
-      "history": []
+      "lease_until": 0,
+      "updated_at": 1792814250,
+      "history": [],
+      "handoff": "Six files: bounded read-only focus context; latest-requirement and delta fields in existing templates. Local67 tests passed before declaration prioritization; final focused7 and template6 passed. One discovered prioritization issue failed then passed. Full workspace privacy0, diff check passed. No extra agent, model calls, service or persistent index. Final PR CI required before merge."
     }
   },
   "batches": {
