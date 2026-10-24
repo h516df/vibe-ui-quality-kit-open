@@ -39,6 +39,8 @@ def validate(contract, root):
         raise Failure('Explicit kind must be release or prerelease.')
     if type(contract.get('require_latest')) is not bool:
         raise Failure('require_latest must be an explicit boolean.')
+    if 'require_public' in contract and type(contract['require_public']) is not bool:
+        raise Failure('require_public must be a boolean when supplied.')
     if contract['kind'] == 'prerelease' and contract['require_latest']:
         raise Failure('A prerelease cannot be the GitHub latest release.')
     target = contract.get('target_commit')
@@ -110,6 +112,12 @@ def tag_commit(base, tag, api):
 def verify(contract, api=github):
     repo, tag = contract['repository'], contract['tag']
     base = '/repos/' + repo
+    require_public = contract.get('require_public', False)
+    if require_public:
+        metadata = api(base)
+        if (not isinstance(metadata, dict) or metadata.get('private') is not False
+                or metadata.get('visibility', 'public') != 'public'):
+            raise Failure('Public delivery requires a public repository; authenticated access does not establish public access.')
     release = api(base + '/releases/tags/' + quote(tag, safe=''))
     if not isinstance(release, dict) or type(release.get('id')) is not int:
         raise Failure('GitHub returned no valid release record.')
@@ -160,6 +168,8 @@ def verify(contract, api=github):
             'release_id': release['id'], 'release_url': 'https://github.com/' + repo + '/releases/tag/' + quote(tag, safe=''),
             'draft': False, 'prerelease': contract['kind'] == 'prerelease',
             'latest_checked': contract['require_latest'], 'target_commit': source,
+            'public_repository_checked': require_public,
+            'anonymous_download_verification': 'not_verified',
             'assets': verified, 'verification_scope': 'GitHub metadata and pinned digests; device installation and client download not tested'}
 
 
