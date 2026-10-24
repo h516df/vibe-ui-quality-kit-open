@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 15,
+  "revision": 16,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -194,6 +194,28 @@
         "ci_url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/3/checks",
         "probe_scope": "Documentation adoption only; not business-app quality or device acceptance."
       }
+    },
+    "oss-design-20261024": {
+      "owner": "codex-oss-design-01a1688a",
+      "workspace": "win-oss-design-01a1688a",
+      "batch": "oss-design-20261024",
+      "role": "work",
+      "branch": "codex/oss-design-20261024",
+      "scopes": [
+        "workflow/OPENSOURCE_EXECUTION.md",
+        "workflow/README.md",
+        "workflow/STYLE.md",
+        "workflow/templates/DESIGN.md",
+        "workflow/templates/ui-foundation.css",
+        "workflow/templates/ui-foundation.html"
+      ],
+      "base": "a0ddf24f965ae16691b5d9f9c85ed038a59f0772",
+      "head": "a0ddf24f965ae16691b5d9f9c85ed038a59f0772",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792825484,
+      "updated_at": 1792818284,
+      "history": []
     }
   },
   "batches": {
@@ -208,6 +230,9 @@
     "quality-outcomes-20261024": {
       "status": "completed",
       "integrator": "quality-outcomes-integrate-20261024"
+    },
+    "oss-design-20261024": {
+      "status": "open"
     }
   }
 }
