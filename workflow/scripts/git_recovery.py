@@ -44,10 +44,10 @@ class GitHub:
             self.env['NO_PROXY'] = self.env.get('NO_PROXY', '') + ',api.github.com'
         self.mutations = 0
 
-    def __call__(self, path, body=None, missing=False):
+    def __call__(self, path, body=None, missing=False, method=None):
         args = [self.executable, 'api', '--hostname', 'github.com', 'repos/' + self.repository + path]
         if body is not None:
-            args += ['--method', 'POST', '--input', '-']
+            args += ['--method', method or 'POST', '--input', '-']
             self.mutations += 1
         try:
             result = subprocess.run(args, input=json.dumps(body, ensure_ascii=False).encode('utf-8') if body is not None else None,
@@ -168,8 +168,13 @@ def remote_metadata(api, repository):
     return value['default_branch']
 
 
-def publish(root, repository, branch, head, expected, apply=False, api=None):
+def publish(root, repository, branch, head, expected, apply=False, api=None, *, expected_remote_head=None):
     summary, entries, payload = prepare_publish(root, repository, branch, head, expected)
+    if expected_remote_head is not None:
+        require_sha(expected_remote_head)
+        if expected_remote_head != summary['base']:
+            raise ValueError('Task continuation requires the exact direct parent of the local source commit.')
+        summary['expected_remote_head'] = expected_remote_head
     summary['mutation_requests'] = 0
     if not apply:
         return summary
@@ -178,12 +183,15 @@ def publish(root, repository, branch, head, expected, apply=False, api=None):
         raise ValueError('Recovery creates a task branch only; default branch publication is not supported.')
     path = '/git/ref/heads/' + quote(branch, safe='/')
     existing = api(path, missing=True)
-    if existing:
-        if existing.get('object', {}).get('sha') != head:
-            raise ValueError('Remote task branch differs; it is preserved without force or overwrite.')
+    if existing and existing.get('object', {}).get('sha') == head:
         return dict(summary, status='already_present')
-    if api('/git/ref/heads/' + quote(default, safe='/'))['object']['sha'] != summary['base']:
-        raise ValueError('Default branch moved; review the base before publishing this source commit.')
+    if expected_remote_head is None:
+        if existing:
+            raise ValueError('Remote task branch differs; it is preserved without force or overwrite.')
+        if api('/git/ref/heads/' + quote(default, safe='/'))['object']['sha'] != summary['base']:
+            raise ValueError('Default branch moved; review the base before publishing this source commit.')
+    elif not existing or existing.get('object', {}).get('sha') != expected_remote_head:
+        raise ValueError('Expected task branch parent is absent or changed; preserve it and inspect before resuming.')
     base_tree = api('/git/commits/' + summary['base'])['tree']['sha']
     created = api('/git/trees', dict(base_tree=base_tree, tree=entries))
     if created.get('sha') != summary['tree']:
@@ -191,7 +199,12 @@ def publish(root, repository, branch, head, expected, apply=False, api=None):
     created = api('/git/commits', payload)
     if created.get('sha') != head:
         raise ValueError('Remote commit identity differs; no ref was created.')
-    api('/git/refs', dict(ref='refs/heads/' + branch, sha=head))
+    if expected_remote_head is None:
+        api('/git/refs', dict(ref='refs/heads/' + branch, sha=head))
+    else:
+        # The target has exactly one parent, the observed remote head. A concurrent
+        # divergent update is rejected atomically by GitHub's non-force PATCH.
+        api('/git/refs/heads/' + quote(branch, safe='/'), dict(sha=head, force=False), method='PATCH')
     if api(path)['object']['sha'] != head:
         raise ValueError('Source ref acknowledgement differs; read current state before any retry.')
     return dict(summary, status='published', mutation_requests=api.mutations)
@@ -252,10 +265,13 @@ def recover(args, api=None):
     root, repository, branch, head = local_state(args.target)
     if args.operation == 'sync' and not args.remote_head:
         raise ValueError('Synchronization needs the explicitly verified merge commit SHA.')
+    if args.operation != 'publish' and getattr(args, 'expected_remote_head', None) is not None:
+        raise ValueError('Expected task branch parent applies only to publication.')
     if args.apply and api is None:
         api = GitHub(repository, args.gh, args.network)
     if args.operation == 'publish':
-        result = publish(root, repository, branch, head, args.expected_head, args.apply, api)
+        result = publish(root, repository, branch, head, args.expected_head, args.apply, api,
+                         expected_remote_head=getattr(args, 'expected_remote_head', None))
     else:
         result = sync(root, repository, branch, head, args.expected_head, args.remote_head, args.apply, api)
     print(json.dumps(result, ensure_ascii=False, separators=(',', ':')))

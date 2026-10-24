@@ -24,7 +24,7 @@ class FakeGitHub:
         self.bad_tree = False
         self.merge = None
 
-    def __call__(self, path, body=None, missing=False):
+    def __call__(self, path, body=None, missing=False, method=None):
         self.calls.append((path, body is not None))
         if body is not None:
             self.mutations += 1
@@ -63,6 +63,12 @@ class FakeGitHub:
                 raise ValueError('Fixture branch conflict')
             self.refs[branch] = body['sha']
             return {'object': {'sha': body['sha']}}
+        if path.startswith('/git/refs/heads/') and method == 'PATCH':
+            branch=path.removeprefix('/git/refs/heads/')
+            if body.get('force') is not False or self.refs.get(branch) != self.fixture.base:
+                raise ValueError('Fixture non-fast-forward conflict')
+            self.refs[branch]=body['sha']
+            return {'object':{'sha':body['sha']}}
         raise AssertionError('Unexpected fixture endpoint: ' + path)
 
 
@@ -138,6 +144,54 @@ class GitRecoveryTests(unittest.TestCase):
                 with self.assertRaises(ValueError): self.invoke(apply=True)
                 self.assertEqual(self.api.mutations, 0)
 
+    def test_existing_task_branch_advances_one_exact_commit_and_repeat_is_read_only(self):
+        self.api.refs['agent/source']=self.base
+        self.api.refs['main']='c'*40  # Unrelated main movement must not block an owned task branch.
+        before=(self.git('rev-parse','HEAD'),(self.root/'.git/index').read_bytes())
+        report=self.invoke(apply=True,expected_remote_head=self.base)
+        self.assertEqual('published',report['status'])
+        self.assertEqual(self.head,self.api.refs['agent/source'])
+        self.assertEqual(3,self.api.mutations)
+        self.assertEqual(before,(self.git('rev-parse','HEAD'),(self.root/'.git/index').read_bytes()))
+        self.api.mutations=0
+        self.assertEqual('already_present',self.invoke(apply=True,expected_remote_head=self.base)['status'])
+        self.assertEqual(0,self.api.mutations)
+
+    def test_existing_branch_requires_an_exact_present_parent_and_does_not_select_main(self):
+        for state in ('missing','moved','not_parent'):
+            with self.subTest(state=state):
+                self.api=FakeGitHub(self)
+                expected=self.base
+                if state=='moved':self.api.refs['agent/source']='e'*40
+                if state=='not_parent':
+                    expected='e'*40;self.api.refs['agent/source']=expected
+                with self.assertRaises(ValueError):self.invoke(apply=True,expected_remote_head=expected)
+                self.assertEqual(0,self.api.mutations)
+
+    def test_uncertain_branch_update_resumes_by_reading_the_saved_exact_head(self):
+        self.api.refs['agent/source']=self.base
+        original=self.api.__call__
+        def interrupted(path,body=None,missing=False,method=None):
+            value=original(path,body,missing,method)
+            if method=='PATCH':raise ValueError('Fixture response lost after ref saved')
+            return value
+        with self.assertRaisesRegex(ValueError,'response lost'):
+            recovery.publish(self.root,'fixture/source','agent/source',self.head,self.head,True,interrupted,expected_remote_head=self.base)
+        self.assertEqual(self.head,self.api.refs['agent/source'])
+        self.api.mutations=0
+        self.assertEqual('already_present',self.invoke(apply=True,expected_remote_head=self.base)['status'])
+        self.assertEqual(0,self.api.mutations)
+
+    def test_concurrent_task_update_is_rejected_without_force(self):
+        self.api.refs['agent/source']=self.base
+        original=self.api.__call__
+        def raced(path,body=None,missing=False,method=None):
+            if method=='PATCH':self.api.refs['agent/source']='e'*40
+            return original(path,body,missing,method)
+        with self.assertRaisesRegex(ValueError,'non-fast-forward'):
+            recovery.publish(self.root,'fixture/source','agent/source',self.head,self.head,True,raced,expected_remote_head=self.base)
+        self.assertEqual('e'*40,self.api.refs['agent/source'])
+
     def test_default_branch_publish_and_dirty_worktree_are_not_recovery_routes(self):
         self.api.refs['main'] = self.base
         self.git('branch', '-m', 'main-task')
@@ -196,9 +250,11 @@ class GitRecoveryTests(unittest.TestCase):
         before = (self.root / '.git/index').read_bytes()
         env = {k: v for k, v in os.environ.items() if k != 'PYTHONDONTWRITEBYTECODE'}
         result = subprocess.run([sys.executable, str(cloud / 'workflow.py'), 'recover-git', '--operation', 'publish',
-                                 '--target', str(self.root), '--expected-head', head], capture_output=True, env=env)
+                                 '--target', str(self.root), '--expected-head', head,
+                                 '--expected-remote-head', self.head], capture_output=True, env=env)
         self.assertEqual(result.returncode, 0, result.stderr.decode(errors='replace'))
         self.assertEqual(json.loads(result.stdout)['status'], 'planned')
+        self.assertEqual(json.loads(result.stdout)['expected_remote_head'], self.head)
         self.assertFalse((cloud / '__pycache__').exists())
         self.assertEqual(self.git('status', '--porcelain'), '')
         self.assertEqual((self.root / '.git/index').read_bytes(), before)
