@@ -1,7 +1,34 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 0,
-  "tasks": {},
-  "batches": {}
+  "revision": 1,
+  "tasks": {
+    "focused-context-20261024": {
+      "owner": "codex-focused-context-01a1688a",
+      "workspace": "win-focused-context-01a1688a",
+      "batch": "focused-context-20261024",
+      "role": "work",
+      "branch": "codex/focused-context-20261024",
+      "scopes": [
+        "workflow/README.md",
+        "workflow/scripts/resume_status.py",
+        "workflow/scripts/workflow.py",
+        "workflow/templates/HANDOFF.md",
+        "workflow/templates/TASK.md",
+        "workflow/tests/test_resume_status.py"
+      ],
+      "base": "b81210de1c892caf96c16c68f3d0f605c4016059",
+      "head": "b81210de1c892caf96c16c68f3d0f605c4016059",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792821029,
+      "updated_at": 1792813829,
+      "history": []
+    }
+  },
+  "batches": {
+    "focused-context-20261024": {
+      "status": "open"
+    }
+  }
 }
