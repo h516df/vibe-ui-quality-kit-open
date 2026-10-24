@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 21,
+  "revision": 24,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -270,12 +270,44 @@
         "workflow/templates/ui-preview.png"
       ],
       "base": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
-      "head": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
+      "head": "0754cc2bb7413daf531c81503102ee1c48d894c8",
+      "status": "ready",
+      "generation": 1,
+      "lease_until": 0,
+      "updated_at": 1792821420,
+      "history": [],
+      "handoff": "Five files: replace rejected gallery with reading workspace; original synthetic UI and screenshot. Twenty browser behavior/layout checks passed, actual screenshots inspected, packaged relative CSS/action checked, privacy zero. User aesthetic acceptance remains open."
+    },
+    "ui-redesign-integrate-20261024": {
+      "owner": "codex-ui-redesign-integrate-01a1688a",
+      "workspace": "win-ui-redesign-integrate-01a1688a",
+      "batch": "ui-redesign-20261024",
+      "role": "integrator",
+      "branch": "codex/ui-redesign-integration-20261024-01a1688a",
+      "scopes": [
+        "@integration",
+        "@publish"
+      ],
+      "base": "0754cc2bb7413daf531c81503102ee1c48d894c8",
+      "head": "0754cc2bb7413daf531c81503102ee1c48d894c8",
       "status": "active",
       "generation": 1,
-      "lease_until": 1792828218,
-      "updated_at": 1792821018,
-      "history": []
+      "lease_until": 1792828620,
+      "updated_at": 1792821420,
+      "history": [],
+      "receipt": {
+        "source_sha": "0754cc2bb7413daf531c81503102ee1c48d894c8",
+        "members": {
+          "ui-redesign-20261024": "0754cc2bb7413daf531c81503102ee1c48d894c8"
+        },
+        "checks": [
+          {
+            "name": "Actual browser paths, desktop/mobile/dark/large text, inspected screenshots, packaging and privacy zero",
+            "status": "passed",
+            "source_sha": "0754cc2bb7413daf531c81503102ee1c48d894c8"
+          }
+        ]
+      }
     }
   },
   "batches": {
@@ -296,7 +328,8 @@
       "integrator": "oss-design-integrate-20261024"
     },
     "ui-redesign-20261024": {
-      "status": "open"
+      "status": "sealed",
+      "integrator": "ui-redesign-integrate-20261024"
     }
   }
 }
