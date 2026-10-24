@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 6,
+  "revision": 7,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -84,12 +84,13 @@
         "workflow/tests/test_resume_status.py"
       ],
       "base": "8cf408862474edc4174a8358bdef588711433e3d",
-      "head": "8cf408862474edc4174a8358bdef588711433e3d",
-      "status": "active",
+      "head": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
+      "status": "ready",
       "generation": 1,
-      "lease_until": 1792822083,
-      "updated_at": 1792814883,
-      "history": []
+      "lease_until": 0,
+      "updated_at": 1792815390,
+      "history": [],
+      "handoff": "Four files: optional PR-only recovery skips release request; not_requested remains unverified; full mode unchanged. Compact JSON preserves all decoded fields/values. Local70 regression tests pass, privacy0, diff check clean. Instrumented mocked-gh test counts2 to1 query; identical real-repo report2894 to1956 characters. Final GitHub CI required before merge."
     }
   },
   "batches": {
