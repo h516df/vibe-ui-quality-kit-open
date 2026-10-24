@@ -26,7 +26,9 @@
 
 ## 包含什么
 
-- [离线界面基础样例](templates/ui-foundation.html) 与 [无依赖CSS](templates/ui-foundation.css)：代理按需预览两个设计方向、浅深色和可操作的搜索/筛选/详情，复用适合项目的语义变量与组件；不是已交付业务产品，不自动覆盖既有页面。
+- [离线阅读工作区预览](templates/ui-foundation.html) 与 [样例CSS](templates/ui-foundation.css)：导航、清单和阅读区域围绕同一用途组织，小屏分开清单与正文；搜索、星标、已读、归档、添加及返回可操作，浅深色一致。内容仅在本次页面保留。用户已否定旧版卡片样例；新稿仍待审美反馈，不作为所有产品的默认皮肤。
+
+  ![阅读工作区的实际桌面渲染](templates/ui-preview.png)
 
 - [需求与实际结果对应](WORKFLOW.md#quality-evidence)：由代理沿原任务关联完成条件、代表操作与当前证据，先跑通完整用途、检查代表界面，再按影响补齐本批；不增加用户表格或固定审查轮次。
 
