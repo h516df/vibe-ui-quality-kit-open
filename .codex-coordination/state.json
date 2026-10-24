@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 12,
+  "revision": 13,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -156,6 +156,24 @@
       "updated_at": 1792816287,
       "history": [],
       "handoff": "Five documentation/template files: criteria tied to observable results, representative journey and design decisions. Adoption tested in temporary Git repository; repeat preserves custom handoff; privacy zero; no runtime script changes."
+    },
+    "quality-outcomes-integrate-20261024": {
+      "owner": "codex-quality-integrate-01a1688a",
+      "workspace": "win-quality-integrate-01a1688a",
+      "batch": "quality-outcomes-20261024",
+      "role": "integrator",
+      "branch": "codex/quality-outcomes-integration-20261024",
+      "scopes": [
+        "@integration",
+        "@publish"
+      ],
+      "base": "285d035b794d348b81fea67cb458846d7efffec3",
+      "head": "285d035b794d348b81fea67cb458846d7efffec3",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792823509,
+      "updated_at": 1792816309,
+      "history": []
     }
   },
   "batches": {
@@ -168,7 +186,8 @@
       "integrator": "lean-recovery-integrate-20261024"
     },
     "quality-outcomes-20261024": {
-      "status": "open"
+      "status": "sealed",
+      "integrator": "quality-outcomes-integrate-20261024"
     }
   }
 }
