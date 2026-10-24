@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 16,
+  "revision": 17,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -210,12 +210,13 @@
         "workflow/templates/ui-foundation.html"
       ],
       "base": "a0ddf24f965ae16691b5d9f9c85ed038a59f0772",
-      "head": "a0ddf24f965ae16691b5d9f9c85ed038a59f0772",
-      "status": "active",
+      "head": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
+      "status": "ready",
       "generation": 1,
-      "lease_until": 1792825484,
-      "updated_at": 1792818284,
-      "history": []
+      "lease_until": 0,
+      "updated_at": 1792818615,
+      "history": [],
+      "handoff": "Six files: reusable offline visual foundation, documented token decisions and source-filtering patterns. Browser evidence and privacy scan required before publication."
     }
   },
   "batches": {
