@@ -2,6 +2,7 @@
 """Cloud workflow bootstrap/check/receipt. Python standard library; no credentials."""
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -118,11 +119,14 @@ def check(args):
         print('NOT CONFIGURED: core functional checks.', file=sys.stderr)
         return 2
     count = 0
+    environment = dict(os.environ)
+    if 'PYTHONPYCACHEPREFIX' not in environment:
+        environment.setdefault('PYTHONDONTWRITEBYTECODE', '1')
     for item in config['checks']:
         if args.level == 'quick' and item['level'] != 'quick':
             continue
         print('RUN: ' + item['name'], flush=True)
-        result = subprocess.run(item['command'], cwd=root, timeout=item.get('timeout_seconds', 120))
+        result = subprocess.run(item['command'], cwd=root, timeout=item.get('timeout_seconds', 120), env=environment)
         if result.returncode:
             print('FAIL: ' + item['name'], file=sys.stderr)
             return 1

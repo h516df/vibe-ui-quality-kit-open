@@ -1,9 +1,11 @@
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/workflow.py'
 
@@ -32,6 +34,35 @@ class WorkflowTests(unittest.TestCase):
 
     def adopt(self):
         self.assertEqual(self.run_tool('adopt', '--apply').returncode, 0)
+
+    def test_python_checks_do_not_leave_bytecode_in_a_clean_source_tree(self):
+        (self.root/'fixture_module.py').write_text('VALUE = 42\n')
+        config={'version':1,'checks':[{'name':'Python fixture','level':'core',
+            'command':[sys.executable,'-c','import fixture_module; assert fixture_module.VALUE == 42']}]}
+        (self.root/'.ai-workflow.json').write_text(json.dumps(config))
+        self.git('add','.');self.git('commit','-qm','configured Python check')
+        environment={k:v for k,v in os.environ.items() if k not in ('PYTHONDONTWRITEBYTECODE','PYTHONPYCACHEPREFIX')}
+        with patch.dict(os.environ,environment,clear=True):
+            result=self.run_tool('check','--level','core')
+        self.assertEqual(0,result.returncode,result.stderr)
+        self.assertFalse((self.root/'__pycache__').exists())
+        self.assertEqual('',self.git('status','--porcelain'))
+
+    def test_python_check_cache_choices_from_the_caller_are_preserved(self):
+        for choice in ('write','prefix'):
+            with self.subTest(choice=choice):
+                environment={k:v for k,v in os.environ.items() if k not in ('PYTHONDONTWRITEBYTECODE','PYTHONPYCACHEPREFIX')}
+                if choice=='write':
+                    environment['PYTHONDONTWRITEBYTECODE']='0'
+                    code='import os; assert os.environ["PYTHONDONTWRITEBYTECODE"] == "0"'
+                else:
+                    environment['PYTHONPYCACHEPREFIX']=str(Path(self.tmp.name)/'caller-cache')
+                    code='import os; assert "PYTHONDONTWRITEBYTECODE" not in os.environ; assert os.environ.get("PYTHONPYCACHEPREFIX")'
+                config={'version':1,'checks':[{'name':'Caller cache choice','level':'core','command':[sys.executable,'-c',code]}]}
+                (self.root/'.ai-workflow.json').write_text(json.dumps(config))
+                with patch.dict(os.environ,environment,clear=True):
+                    result=self.run_tool('check','--level','core')
+                self.assertEqual(0,result.returncode,result.stderr)
 
     def test_dry_run_then_idempotent_preserves_project(self):
         self.assertEqual(self.run_tool('adopt').returncode, 0)
