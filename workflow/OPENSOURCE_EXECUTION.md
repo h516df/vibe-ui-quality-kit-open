@@ -32,4 +32,12 @@ task-done 只根据所运行命令的退出码记录进度。它不能证明断�
 
 ## 其他候选
 
+### 输出精简与设计变量的补充调研（2026-10-24）
+
+实际读取 [RTK README](https://github.com/rtk-ai/rtk/blob/master/README.md)：它按命令类型过滤输出，而非只截断尾部。借鉴到已有入口：Git先取short/status或diff/stat，再读相关文件差异；rg限定目录、命中数与长行；测试优先失败细节和通过摘要，保留真实退出码与项目原有完整日志。结构化JSON、签名/摘要及关键错误不可压掉；按需展开，不能用摘要替代源码审查。
+
+本轮未安装RTK或启用全局钩子。其README列出Apache-2.0的rtk-oss及混合许可版本，自动重写又依赖具体Agent工具入口；Bash拦截不能推定覆盖Windows PowerShell、内置Read或MCP。以后确需接入时，先核对官方发行、校验和及许可，在隔离只读样例比较字段、退出码和副作用，再决定是否采用。RTK报告的输出压缩不等于同幅度账单下降。
+
+实际读取 [tweakcn](https://github.com/jnsahaj/tweakcn) 的README及Apache-2.0许可标识，并查看其公开界面图片：采用集中语义变量、在真实组件上预览的思路，提供本工具库原创离线样例；没有安装其服务器、连接AI接口或复制上游代码。已经可用的Impeccable、shadcn及批注工具继续按任务使用，不为了新项目重复安装；普通小修改不自动跑完整critique、多代理或问卷流程。具体原命令仅在确需时遵守对应技能及用户授权，不改写上游来降低其保证。
+
 读过 [GSD 自主推进](https://github.com/open-gsd/gsd-core/blob/v1.18.0/docs/how-to/run-phases-autonomously.md)、[OpenSpec](https://github.com/Fission-AI/OpenSpec)、[Symphony](https://github.com/openai/symphony) 与 [BMAD Loop](https://github.com/bmad-code-org/bmad-loop)。GSD 的 npm 取得超时、Git 取得出现 TLS 中断，未安装成功；没有把它加入生产入口。其他框架的规划/运行设施不在本次安装范围，避免替换已有系统。
