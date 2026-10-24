@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 9,
+  "revision": 10,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -85,10 +85,10 @@
       ],
       "base": "8cf408862474edc4174a8358bdef588711433e3d",
       "head": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
-      "status": "ready",
+      "status": "integrated",
       "generation": 1,
       "lease_until": 0,
-      "updated_at": 1792815390,
+      "updated_at": 1792815948,
       "history": [],
       "handoff": "Four files: optional PR-only recovery skips release request; not_requested remains unverified; full mode unchanged. Compact JSON preserves all decoded fields/values. Local70 regression tests pass, privacy0, diff check clean. Instrumented mocked-gh test counts2 to1 query; identical real-repo report2894 to1956 characters. Final GitHub CI required before merge."
     },
@@ -104,10 +104,10 @@
       ],
       "base": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
       "head": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
-      "status": "active",
+      "status": "integrated",
       "generation": 1,
-      "lease_until": 1792822621,
-      "updated_at": 1792815427,
+      "lease_until": 0,
+      "updated_at": 1792815948,
       "history": [],
       "receipt": {
         "source_sha": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
@@ -126,6 +126,13 @@
             "source_sha": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e"
           }
         ]
+      },
+      "publication": {
+        "source_sha": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
+        "merge_sha": "f66a445c22f3e46ac874618a840e9b340203a4e1",
+        "url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/2",
+        "ci_url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/2/checks",
+        "probe_scope": "Remote command counts are from mocked-gh tests on real temporary Git repositories; output sizing used one real local report."
       }
     }
   },
@@ -135,7 +142,7 @@
       "integrator": "focused-context-integrate-20261024"
     },
     "lean-recovery-20261024": {
-      "status": "sealed",
+      "status": "completed",
       "integrator": "lean-recovery-integrate-20261024"
     }
   }
