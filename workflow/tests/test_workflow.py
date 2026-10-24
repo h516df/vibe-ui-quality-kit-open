@@ -42,6 +42,14 @@ class WorkflowTests(unittest.TestCase):
         self.assertTrue((self.root / 'cloud/resume_status.py').is_file())
         self.assertTrue((self.root / 'docs/DELIVERY.md').is_file())
         self.assertIn('Keep existing rules', (self.root / 'AGENTS.md').read_text())
+        package = SCRIPT.parents[1]
+        begin, end = '<!-- shared-cloud-workflow:start -->', '<!-- shared-cloud-workflow:end -->'
+        canonical = (package / 'CORE.md').read_text().split(begin, 1)[1].split(end, 1)[0].strip()
+        fragment = (package / 'templates/AGENTS.fragment.md').read_text().strip()
+        source_entry = (package.parent / 'AGENTS.md').read_text().split(begin, 1)[1].split(end, 1)[0].strip()
+        self.assertEqual(fragment, canonical, 'New-project policy must match the maintained cloud rules')
+        self.assertEqual(source_entry, canonical, 'This project entry must not drift from its maintained rules')
+        self.assertIn(canonical, (self.root / 'AGENTS.md').read_text())
         self.assertEqual((self.root / 'HANDOFF.md').read_text(), '# Keep history\n')
         result = self.run_tool('adopt', '--apply')
         self.assertEqual(result.returncode, 0)
