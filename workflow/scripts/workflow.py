@@ -41,6 +41,8 @@ def adopt(args):
         'cloud/coordinate.py': (package / 'scripts/coordinate.py').read_text(),
         'cloud/verify_release.py': (package / 'scripts/verify_release.py').read_text(),
         'cloud/resume_status.py': (package / 'scripts/resume_status.py').read_text(),
+        'cloud/git_recovery.py': (package / 'scripts/git_recovery.py').read_text(),
+        'cloud/privacy_scan.py': (package / 'scripts/privacy_scan.py').read_text(),
         'docs/DELIVERY.md': (package / 'DELIVERY.md').read_text(),
         '.ai-workflow.json': (template / 'project-checks.json').read_text(),
     }
@@ -168,8 +170,20 @@ def main():
             source.add_argument('--github-json', help='Use a normalized snapshot from the current authorized GitHub connector.')
             p.add_argument('--focus', help='Read bounded tracked-file locations and declaration hints for the current question; no code bodies or model calls.')
             p.add_argument('--skip-release', action='store_true', help='For implementation-only recovery with known delivery facts: read PRs and source baseline without querying release metadata. Read releases before delivery.')
+    recovery = sub.add_parser('recover-git', help='Explicit public source transport recovery; local plan unless --apply.')
+    recovery.add_argument('--target', default='.')
+    recovery.add_argument('--operation', choices=('publish', 'sync'), required=True)
+    recovery.add_argument('--expected-head', required=True)
+    recovery.add_argument('--remote-head', help='Exact reviewed merge SHA for sync; never selects the latest task.')
+    recovery.add_argument('--apply', action='store_true')
+    recovery.add_argument('--network', choices=('inherit', 'direct'), default='inherit')
+    recovery.add_argument('--gh', help='Existing GitHub CLI executable when it is absent from the process PATH.')
     args = parser.parse_args()
     try:
+        if args.action == 'recover-git':
+            sys.dont_write_bytecode = True
+            from git_recovery import recover
+            return recover(args)
         if args.action == 'resume':
             from resume_status import resume
             return resume(args)

@@ -40,6 +40,8 @@ class WorkflowTests(unittest.TestCase):
         self.assertTrue((self.root / 'cloud/coordinate.py').is_file())
         self.assertTrue((self.root / 'cloud/verify_release.py').is_file())
         self.assertTrue((self.root / 'cloud/resume_status.py').is_file())
+        self.assertTrue((self.root / 'cloud/git_recovery.py').is_file())
+        self.assertTrue((self.root / 'cloud/privacy_scan.py').is_file())
         self.assertTrue((self.root / 'docs/DELIVERY.md').is_file())
         self.assertIn('Keep existing rules', (self.root / 'AGENTS.md').read_text())
         package = SCRIPT.parents[1]
