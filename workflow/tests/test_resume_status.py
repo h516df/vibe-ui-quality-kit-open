@@ -335,5 +335,72 @@ class ReleaseSummaryTests(unittest.TestCase):
             self.assertEqual(resume.inspect(root, path)['delivery']['status'], 'stale')
 
 
+class FocusTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.git('init', '-q', '-b', 'main')
+        self.git('config', 'user.name', 'Context fixture')
+        self.git('config', 'user.email', 'fixture@example.invalid')
+        self.git('remote', 'add', 'origin', 'https://github.com/fixture/product.git')
+        (self.root / 'save.py').write_text('def save_note(value):\n    return "SYNTHETIC_BODY_NOT_FOR_OUTPUT"\n')
+        (self.root / '.env').write_text('save=SYNTHETIC_CONFIG_NOT_FOR_OUTPUT\n')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'fixture')
+
+    def git(self, *args):
+        return subprocess.check_output(['git', '-C', str(self.root), *args]).decode().strip()
+
+    def test_focus_exposes_location_and_symbols_without_bodies_or_private_files(self):
+        report = resume.focus_context(self.root, 'save')
+        self.assertEqual(report['status'], 'observed')
+        self.assertEqual([f['path'] for f in report['files']], ['save.py'])
+        self.assertEqual(report['files'][0]['declarations'][0], {'name':'save_note', 'line':1})
+        self.assertNotIn('SYNTHETIC_BODY', json.dumps(report))
+        self.assertNotIn('SYNTHETIC_CONFIG', json.dumps(report))
+
+    def test_untracked_content_is_not_used_and_empty_matches_are_normal(self):
+        (self.root / 'untracked.py').write_text('def hidden_feature(): pass\n')
+        report = resume.focus_context(self.root, 'hidden_feature')
+        self.assertEqual(report['status'], 'no_matches')
+        self.assertEqual(report['files'], [])
+
+    def test_context_is_bounded_and_reports_truncation(self):
+        for i in range(12):
+            (self.root / f'item{i}.py').write_text('def save_value(): pass\n')
+        self.git('add', '.')
+        report = resume.focus_context(self.root, 'save')
+        self.assertEqual(len(report['files']), 8)
+        self.assertTrue(report['truncated'])
+        self.assertEqual(report['matched_files'], 13)
+
+    def test_large_file_body_is_not_loaded(self):
+        (self.root / 'large.py').write_text('save\n' + 'x' * 150000)
+        self.git('add', '.')
+        report = resume.focus_context(self.root, 'save')
+        large = next(f for f in report['files'] if f['path'] == 'large.py')
+        self.assertEqual(large['status'], 'requires_targeted_read')
+        self.assertEqual(large['declarations'], [])
+
+    def test_invalid_focus_is_rejected_without_execution(self):
+        for query in ('', 'x' * 201, '---'):
+            with self.assertRaises(ValueError):
+                resume.focus_context(self.root, query)
+
+    def test_cli_focus_preserves_git_state_and_reads_working_tree(self):
+        (self.root / 'save.py').write_text('def save_edited(value):\n    return value\n')
+        index = Path(self.git('rev-parse', '--path-format=absolute', '--git-path', 'index'))
+        before = (self.git('rev-parse', 'HEAD'), self.git('branch', '--show-current'), index.read_bytes())
+        result = subprocess.run([sys.executable, '-B', str(CLI), 'resume', '--target', str(self.root),
+                                 '--focus', 'save'], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report['context']['files'][0]['declarations'][0]['name'], 'save_edited')
+        self.assertEqual(report['github']['status'], 'not_read')
+        self.assertEqual(report['product_acceptance'], 'not_verified')
+        self.assertEqual((self.git('rev-parse', 'HEAD'), self.git('branch', '--show-current'), index.read_bytes()), before)
+
+
 if __name__ == '__main__':
     unittest.main()

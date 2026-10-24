@@ -68,6 +68,20 @@ python3 cloud/workflow.py receipt --remote origin --branch task-branch
 
 ## 让代理恢复已有项目
 
+### 按当前问题收拢上下文
+
+需要定位代码时，代理从当前问题选少量关键词或符号，使用同一入口：
+
+```bash
+python3 /path/to/kit/workflow/scripts/workflow.py resume --target /path/to/project --focus "save archive"
+```
+
+`--focus` 可与 `--github` 或连接器快照并用。它只检索已跟踪工作树，最多返回8个相关代码/Markdown文件的位置、内容摘要哈希，以及每文件最多6个声明名和行号；不回传源码正文、字符串值或未跟踪文件，不执行模型或项目脚本。单文件超过128 KiB只给定位提示；无匹配是正常结果，截断明确标记。声明只是阅读线索，代理仍须核对实际调用关系，不能把关键词匹配当完整影响分析或验收。
+
+由代理据此先读相关入口及直接依赖，再按证据缺口扩展，用户无需挑文件或输入关键词。现有 TASK/HANDOFF 保留当前约定、最近纠正和下一步应读的位置；需求变动只更新差异及受影响证据，不因每次聊天重新准备整套规格。
+
+本轮借鉴 [OpenSpec](https://github.com/Fission-AI/OpenSpec) 的需求/变更分离和 [Aider repository map](https://github.com/Aider-AI/aider/blob/main/aider/website/docs/repomap.md) 的相关上下文与预算思路，沿用已有Git及Python标准库。没有引入额外Agent、模型配置、持久索引或后台循环；上下文减少幅度取决于实际项目，不承诺固定省额比例。
+
 接续输出新增 `brief`：将本次最先该处理的问题收拢为一句中文和一个代理负责的动作。先保护未提交改动、辨明 detached HEAD，再按远端信息完整性、源码一致性与当前 PR 检查状态处理。检查失败优先诊断，检查进行中继续可独立工作，缺失/跳过/未知检查先核对项目要求；其他 PR 的失败不冒充当前源码失败。多个相关 PR 不自动选一个。
 
 `brief` 是代理的只读线索，不自动执行、修改模型或派发任务，不凭探测结果推断用户必须操作或代理已获得写手权限。来源、下载与产品验收仍需分别验证。过时或不完整的仅 PR 快照也返回 exit 2；本地模式的 `not_read` 保持明确且不当作读取失败。由代理消化技术字段，向用户先报告实际变化、可用入口与确需本人处理的最小一步。
