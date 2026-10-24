@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 5,
+  "revision": 6,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -70,12 +70,35 @@
           "https://github.com/h516df/vibe-ui-quality-kit-open/actions/runs/40060538854"
         ]
       }
+    },
+    "lean-recovery-20261024": {
+      "owner": "codex-lean-recovery-01a1688a",
+      "workspace": "win-lean-recovery-01a1688a",
+      "batch": "lean-recovery-20261024",
+      "role": "work",
+      "branch": "codex/lean-recovery-20261024",
+      "scopes": [
+        "workflow/README.md",
+        "workflow/scripts/resume_status.py",
+        "workflow/scripts/workflow.py",
+        "workflow/tests/test_resume_status.py"
+      ],
+      "base": "8cf408862474edc4174a8358bdef588711433e3d",
+      "head": "8cf408862474edc4174a8358bdef588711433e3d",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792822083,
+      "updated_at": 1792814883,
+      "history": []
     }
   },
   "batches": {
     "focused-context-20261024": {
       "status": "completed",
       "integrator": "focused-context-integrate-20261024"
+    },
+    "lean-recovery-20261024": {
+      "status": "open"
     }
   }
 }
