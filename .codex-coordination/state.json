@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 20,
+  "revision": 21,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -255,6 +255,27 @@
         "ci_url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/4/checks",
         "probe_scope": "Reusable browser reference: desktop/mobile, light/dark, 200 percent text and targeted interactions. Not business-app, native-device, persistence or user aesthetic acceptance."
       }
+    },
+    "ui-redesign-20261024": {
+      "owner": "codex-ui-redesign-01a1688a",
+      "workspace": "win-ui-redesign-01a1688a",
+      "batch": "ui-redesign-20261024",
+      "role": "work",
+      "branch": "codex/ui-redesign-20261024-01a1688a",
+      "scopes": [
+        "workflow/README.md",
+        "workflow/STYLE.md",
+        "workflow/templates/ui-foundation.css",
+        "workflow/templates/ui-foundation.html",
+        "workflow/templates/ui-preview.png"
+      ],
+      "base": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
+      "head": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792828218,
+      "updated_at": 1792821018,
+      "history": []
     }
   },
   "batches": {
@@ -273,6 +294,9 @@
     "oss-design-20261024": {
       "status": "completed",
       "integrator": "oss-design-integrate-20261024"
+    },
+    "ui-redesign-20261024": {
+      "status": "open"
     }
   }
 }
