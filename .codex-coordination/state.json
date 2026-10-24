@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 17,
+  "revision": 18,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -217,6 +217,24 @@
       "updated_at": 1792818615,
       "history": [],
       "handoff": "Six files: reusable offline visual foundation, documented token decisions and source-filtering patterns. Browser evidence and privacy scan required before publication."
+    },
+    "oss-design-integrate-20261024": {
+      "owner": "codex-oss-design-integrate-01a1688a",
+      "workspace": "win-oss-design-integrate-01a1688a",
+      "batch": "oss-design-20261024",
+      "role": "integrator",
+      "branch": "codex/oss-design-integration-20261024",
+      "scopes": [
+        "@integration",
+        "@publish"
+      ],
+      "base": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
+      "head": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792825825,
+      "updated_at": 1792818625,
+      "history": []
     }
   },
   "batches": {
@@ -233,7 +251,8 @@
       "integrator": "quality-outcomes-integrate-20261024"
     },
     "oss-design-20261024": {
-      "status": "open"
+      "status": "sealed",
+      "integrator": "oss-design-integrate-20261024"
     }
   }
 }
