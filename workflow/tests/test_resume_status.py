@@ -310,6 +310,8 @@ class ReleaseSummaryTests(unittest.TestCase):
                 def query(target, argv):
                     if argv[:2] == ['gh', 'pr']:
                         return json.dumps(snapshot()['pull_requests'])
+                    if argv[:3] == ['gh', 'api', 'graphql']:
+                        return json.dumps(dict(name='main', target=dict(oid=git('rev-parse', 'HEAD').strip())))
                     if argv[:2] == ['gh', 'api']:
                         if failed:
                             raise ValueError('query failed')
@@ -322,7 +324,7 @@ class ReleaseSummaryTests(unittest.TestCase):
                 self.assertEqual(result['delivery']['status'], 'unavailable' if failed else 'metadata_observed')
                 self.assertEqual((git('rev-parse', 'HEAD'), (root / '.git/index').read_bytes()), before)
 
-    def test_pr_only_recovery_uses_one_remote_query_and_keeps_acceptance_unverified(self):
+    def test_implementation_recovery_reads_prs_and_baseline_without_release(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             git = self.repository(root)
@@ -331,12 +333,15 @@ class ReleaseSummaryTests(unittest.TestCase):
             def query(target, argv):
                 if argv[0] == 'gh':
                     remote_calls.append(argv)
+                    if argv[:3] == ['gh', 'api', 'graphql']:
+                        return json.dumps(dict(name='main', target=dict(oid=before[0].strip())))
                     self.assertEqual(argv[:2], ['gh', 'pr'])
                     return json.dumps(snapshot()['pull_requests'])
                 return real_run(target, argv)
             with patch.object(resume, 'run', side_effect=query):
                 result = resume.inspect(root, github=True, skip_release=True)
-            self.assertEqual(len(remote_calls), 1)
+            self.assertEqual(len(remote_calls), 2)
+            self.assertEqual(result['source_baseline']['relation'], 'same')
             self.assertEqual(result['delivery']['status'], 'not_requested')
             self.assertFalse(resume.recovery_brief(result)['remote_read_incomplete'])
             self.assertEqual(result['product_acceptance'], 'not_verified')
@@ -443,6 +448,98 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(report['github']['status'], 'not_read')
         self.assertEqual(report['product_acceptance'], 'not_verified')
         self.assertEqual((self.git('rev-parse', 'HEAD'), self.git('branch', '--show-current'), index.read_bytes()), before)
+
+
+class SourceBaselineTests(unittest.TestCase):
+    repository = ReleaseSummaryTests.repository
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.git = self.repository(self.root)
+        self.head = self.git('rev-parse', 'HEAD').strip()
+        self.git('update-ref', 'refs/remotes/origin/main', self.head)
+        self.path = self.root / '.git/recovery.json'
+
+    def inspect_snapshot(self, baseline, **changes):
+        data = snapshot()
+        data.update(observed_at=dt.datetime.now(dt.timezone.utc).isoformat(),
+                    pull_requests=[], default_branch=baseline, **changes)
+        self.path.write_text(json.dumps(data))
+        return resume.inspect(self.root, self.path, skip_release=True)
+
+    def test_stale_tracking_ref_cannot_hide_actual_default_branch_difference(self):
+        before = (self.head, (self.root / '.git/index').read_bytes())
+        result = self.inspect_snapshot(dict(name='main', head='b' * 40, body='SYNTHETIC_PRIVATE_BODY'))
+        self.assertEqual(self.git('rev-parse', 'refs/remotes/origin/main').strip(), self.head)
+        self.assertEqual(result['source_baseline']['relation'], 'different')
+        brief = resume.recovery_brief(result)
+        self.assertEqual(brief['next_action'], 'compare_default_branch_source')
+        self.assertFalse(brief['automatic_execution'])
+        self.assertEqual(brief['product_acceptance'], 'not_verified')
+        self.assertNotIn('SYNTHETIC_PRIVATE_BODY', json.dumps(result))
+        self.assertEqual((self.git('rev-parse', 'HEAD').strip(), (self.root / '.git/index').read_bytes()), before)
+
+    def test_matching_main_and_feature_branch_do_not_invent_source_failure(self):
+        self.assertEqual(self.inspect_snapshot(dict(name='main', head=self.head))['source_baseline']['relation'], 'same')
+        self.git('switch', '-qc', 'codex/feature')
+        result = self.inspect_snapshot(dict(name='main', head='b' * 40))
+        self.assertEqual(result['source_baseline']['relation'], 'other_branch')
+        self.assertEqual(resume.recovery_brief(result)['next_action'], 'review_related_work')
+        self.assertFalse(resume.recovery_brief(result)['remote_read_incomplete'])
+
+    def test_stale_invalid_or_missing_baseline_does_not_claim_live_match(self):
+        data = snapshot()
+        data.update(default_branch=dict(name='main', head='b' * 40), observed_at='2000-01-01T00:00:00Z')
+        self.path.write_text(json.dumps(data))
+        result = resume.inspect(self.root, self.path, skip_release=True)
+        self.assertEqual(result['source_baseline']['status'], 'stale')
+        self.assertEqual(resume.recovery_brief(result)['next_action'], 'refresh_github_snapshot')
+        for baseline, status in ((None, 'unavailable'), ({'name': 'main', 'head': 'broken'}, 'invalid')):
+            with self.subTest(status=status):
+                result = self.inspect_snapshot(baseline)
+                self.assertEqual(result['source_baseline']['status'], status)
+                brief = resume.recovery_brief(result)
+                self.assertTrue(brief['remote_read_incomplete'])
+                self.assertEqual(brief['source_baseline_next_action'], 'read_default_branch_with_existing_connector')
+
+    def test_dirty_work_keeps_priority_and_legacy_snapshot_is_explicitly_unread(self):
+        (self.root / 'README.md').write_text('Keep this unfinished change')
+        result = self.inspect_snapshot(dict(name='main', head='b' * 40))
+        self.assertEqual(resume.recovery_brief(result)['next_action'], 'inspect_local_changes')
+        self.assertEqual((self.root / 'README.md').read_text(), 'Keep this unfinished change')
+        data = snapshot()
+        data['observed_at'] = dt.datetime.now(dt.timezone.utc).isoformat()
+        self.path.write_text(json.dumps(data))
+        result = resume.inspect(self.root, self.path, skip_release=True)
+        self.assertEqual(result['source_baseline']['status'], 'not_read')
+        self.assertFalse(resume.recovery_brief(result)['remote_read_incomplete'])
+
+    def test_independent_remote_results_survive_single_query_failure(self):
+        real_run = resume.run
+        for failed_query in ('pr', 'baseline'):
+            calls = []
+            def query(target, argv):
+                if argv[0] != 'gh':
+                    return real_run(target, argv)
+                calls.append(argv)
+                if argv[:2] == ['gh', 'pr']:
+                    if failed_query == 'pr':
+                        raise subprocess.TimeoutExpired('gh', 20)
+                    return '[]'
+                if argv[:3] == ['gh', 'api', 'graphql']:
+                    if failed_query == 'baseline':
+                        raise ValueError('Synthetic connection failure')
+                    return json.dumps(dict(name='main', target=dict(oid=self.head)))
+                return json.dumps(release())
+            with self.subTest(failed_query=failed_query), patch.object(resume, 'run', side_effect=query):
+                result = resume.inspect(self.root, github=True)
+            self.assertEqual(len(calls), 3)
+            self.assertEqual(result['delivery']['status'], 'metadata_observed')
+            self.assertEqual(result['github']['status'], 'unavailable' if failed_query == 'pr' else 'observed')
+            self.assertEqual(result['source_baseline']['status'], 'unavailable' if failed_query == 'baseline' else 'observed')
+            self.assertTrue(resume.recovery_brief(result)['remote_read_incomplete'])
 
 
 if __name__ == '__main__':

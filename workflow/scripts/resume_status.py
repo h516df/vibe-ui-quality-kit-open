@@ -14,6 +14,7 @@ REPOSITORY = re.compile(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z')
 SHA = re.compile(r'[0-9a-f]{40}\Z')
 FIELDS = 'number,title,url,headRefName,headRefOid,baseRefName,isDraft,updatedAt,statusCheckRollup'
 RELEASE_FIELDS = '{tag_name,name,html_url,draft,prerelease,assets:[.assets[]|{name,size,state,digest,browser_download_url}]}'
+BASELINE_QUERY = 'query($owner:String!,$name:String!){repository(owner:$owner,name:$name){defaultBranchRef{name target{oid}}}}'
 
 
 def run(root, argv, timeout=20):
@@ -231,6 +232,20 @@ def focus_context(root, query):
                 scope='Tracked working-tree locations and declaration hints; not a complete dependency map.')
 
 
+def summarize_baseline(data, branch, head, observed_at):
+    """Compare the actual remote default tip, never a cached origin tracking ref."""
+    if (not isinstance(data, dict) or not isinstance(data.get('name'), str)
+            or not 1 <= len(data['name']) <= 255
+            or any(ord(c) < 32 for c in data['name'])
+            or not isinstance(data.get('head'), str) or not SHA.fullmatch(data['head'])):
+        raise ValueError('Invalid default branch identity.')
+    relation = ('other_branch' if branch != data['name'] else
+                'same' if head == data['head'] else 'different')
+    return dict(status='observed', branch=data['name'], head=data['head'],
+                observed_at=observed_at, relation=relation,
+                basis='github_default_branch_not_local_tracking_ref')
+
+
 def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=False):
     if skip_release and not (github or snapshot_path):
         raise ValueError('Skip-release requires GitHub recovery or an existing connector snapshot.')
@@ -247,10 +262,11 @@ def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=Fal
                   entrypoints=[p for p in ('AGENTS.md', 'README.md', 'CLOUD_DEVELOPMENT.md',
                                'HANDOFF.md', 'docs/TASK.md', '.ai-workflow.json') if (root / p).is_file()],
                   github=dict(status='not_read', next_action='read_related_pull_requests'),
+                  source_baseline=dict(status='not_read'),
                   delivery=dict(status='not_read', next_action='read_latest_release'),
                   product_acceptance='not_verified', writer_ownership='not_verified',
                   guidance='Read project entrypoints and the existing coordination registry; PR titles, checks and recency do not establish task ownership or product acceptance.')
-    release_reason = None
+    release_reason, pr_failed = None, False
     if skip_release:
         result['delivery'] = dict(status='not_requested', next_action='read_latest_release_before_delivery')
     if focus is not None:
@@ -258,19 +274,28 @@ def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=Fal
     if snapshot_path:
         snapshot = read_snapshot(snapshot_path)
     elif github:
+        snapshot = dict(repository=repository, observed_at=dt.datetime.now(dt.timezone.utc).isoformat(),
+                        complete=False, pull_requests=[])
         try:
             rows = json.loads(run(root, ['gh', 'pr', 'list', '--repo', 'github.com/' + repository,
                                         '--state', 'open', '--limit', '100', '--json', FIELDS]))
             if not isinstance(rows, list):
                 raise ValueError('Invalid PR list.')
+            snapshot.update(complete=len(rows) < 100, pull_requests=rows)
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             reason = ('timeout' if isinstance(exc, subprocess.TimeoutExpired) else
                       'cli_unavailable' if isinstance(exc, FileNotFoundError) else 'query_failed')
             result['github'] = dict(status='unavailable', reason=reason,
                                     next_action='read_related_pull_requests_with_existing_connector')
-            return result
-        snapshot = dict(repository=repository, observed_at=dt.datetime.now(dt.timezone.utc).isoformat(),
-                        complete=len(rows) < 100, pull_requests=rows)
+            pr_failed = True
+        owner, name = repository.split('/')
+        try:
+            data = json.loads(run(root, ['gh', 'api', 'graphql', '-f', 'query=' + BASELINE_QUERY,
+                                         '-f', 'owner=' + owner, '-f', 'name=' + name,
+                                         '--jq', '.data.repository.defaultBranchRef']))
+            snapshot['default_branch'] = dict(name=data['name'], head=data['target']['oid'])
+        except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError):
+            snapshot['default_branch'] = None
         if not skip_release:
             try:
                 snapshot['latest_release'] = json.loads(run(root, ['gh', 'api', f'repos/{repository}/releases/latest',
@@ -280,7 +305,19 @@ def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=Fal
                 release_reason = 'query_failed'
     else:
         return result
-    result['github'] = summarize_snapshot(snapshot, repository, branch, head, bool(status))
+    if not pr_failed:
+        result['github'] = summarize_snapshot(snapshot, repository, branch, head, bool(status))
+    if 'default_branch' in snapshot:
+        if snapshot['default_branch'] is None:
+            result['source_baseline'] = dict(status='unavailable')
+        else:
+            try:
+                result['source_baseline'] = summarize_baseline(snapshot['default_branch'], branch, head,
+                                                              snapshot['observed_at'])
+            except (ValueError, TypeError):
+                result['source_baseline'] = dict(status='invalid')
+        if result['github']['status'] == 'stale':
+            result['source_baseline']['status'] = 'stale'
     if 'latest_release' in snapshot and not skip_release:
         if snapshot['latest_release'] is None:
             result['delivery'] = dict(status='unavailable', reason=release_reason or 'not_visible_or_missing',
@@ -298,12 +335,16 @@ def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=Fal
 def recovery_brief(result):
     """A deterministic agent-owned next step, not permission or task dispatch."""
     github, delivery = result['github'], result['delivery']
+    baseline = result.get('source_baseline', {})
     action = ('inspect_local_changes' if result['dirty'] else
               'identify_source_and_writer' if result['branch'] is None else
+              'compare_default_branch_source' if baseline.get('status') == 'observed'
+              and baseline.get('relation') == 'different' else
               github['next_action'])
     summaries = {
         'inspect_local_changes': '先核对并保留未提交改动，再续接原任务。',
         'identify_source_and_writer': '当前源码未附着分支，先核对来源与现有写手。',
+        'compare_default_branch_source': '当前默认分支源码与GitHub不同，先比较并保留已有成果，再决定接续基线。',
         'read_related_pull_requests': '本地状态已读，按本次任务补读相关远端工作。',
         'read_related_pull_requests_with_existing_connector': '远端读取失败，保留本地结果并用已有授权连接补读一次。',
         'refresh_github_snapshot': '远端快照过时或不完整，先补足相关信息。',
@@ -315,10 +356,16 @@ def recovery_brief(result):
         'review_related_work': '尚未唯一对应当前 PR，结合原交接核对相关工作。',
     }
     incomplete = (github['status'] in ('unavailable', 'stale') or github.get('complete') is False
+                  or baseline.get('status') in ('unavailable', 'invalid', 'stale')
                   or delivery['status'] in ('unavailable', 'invalid', 'stale'))
     return dict(next_action=action, summary=summaries[action], responsibility='agent',
                 automatic_execution=False, remote_read_incomplete=incomplete,
                 delivery_next_action=delivery['next_action'],
+                source_baseline_next_action=('read_default_branch_with_existing_connector'
+                                            if baseline.get('status') in ('unavailable', 'invalid', 'stale')
+                                            else 'not_read' if baseline.get('status', 'not_read') == 'not_read'
+                                            else 'compare_default_branch_source' if baseline.get('relation') == 'different'
+                                            else 'reference_only'),
                 user_action='not_determined_by_readonly_probe',
                 product_acceptance=result['product_acceptance'],
                 writer_ownership=result['writer_ownership'])

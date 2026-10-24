@@ -74,7 +74,7 @@ python3 cloud/workflow.py receipt --remote origin --branch task-branch
 
 ## 让代理恢复已有项目
 
-同一任务的源码、写手和已有证据仍有效时，代理直接继续，不逐步重跑接续查询。正在编码且已掌握当前产物/交付事实时，可用 `resume --github --skip-release`（也支持连接器快照）只核对PR，减少一次发行查询；`delivery.status=not_requested` 明确表示未读取，不当作发行查询失败或已验收。首次接手未知版本、打包发布或下载核验时仍使用完整读取。缺失、过时或不完整的PR信息继续如实报错，产品验收保持独立。
+同一任务的源码、写手和已有证据仍有效时，代理直接继续，不逐步重跑接续查询。正在编码且已掌握当前产物/交付事实时，可用 `resume --github --skip-release`（也支持连接器快照）核对PR与源码基线，减少一次发行查询；`delivery.status=not_requested` 明确表示未读取，不当作发行查询失败或已验收。首次接手未知版本、打包发布或下载核验时仍使用完整读取。缺失、过时或不完整的PR信息继续如实报错，产品验收保持独立。
 
 JSON输出采用紧凑格式，保留相同字段和值，避免反复传输缩进空白；需要人工查看时可沿用标准JSON格式化工具。该选项减少特定接续阶段的查询和输出，不承诺整个开发任务固定省额比例。
 
@@ -102,11 +102,13 @@ python3 /path/to/kit/workflow/scripts/workflow.py resume --target /path/to/proje
 python3 /path/to/kit/workflow/scripts/workflow.py resume --target /path/to/project --github
 ```
 
-命令只读当前 Git 身份、是否有未提交改动、已有交接入口，并通过现有 gh 认证最多读取一次开放 PR 列表。不 fetch、checkout、修改工作区、登录、派发任务、自动挑最新 PR 或合并。最多读取 100 项，达到上限标记不完整。失败不重试，返回仍可确认的本地信息和 exit 2；代理可沿已有 GitHub 连接器补读，不能声称已掌握远端。未请求 GitHub 的本地模式明确标 not_read。
+命令只读当前 Git 身份、是否有未提交改动、已有交接入口，并通过现有 gh 认证各有界读取一次开放 PR 列表和默认分支实际提交。不 fetch、checkout、修改工作区、登录、派发任务、自动挑最新 PR 或合并。最多读取 100 项，达到上限标记不完整。失败不重试，返回仍可确认的本地信息和 exit 2；代理可沿已有 GitHub 连接器补读，不能声称已掌握远端。未请求 GitHub 的本地模式明确标 not_read。
+
+`source_baseline` 取 GitHub 默认分支的名称与实际提交，不把本地可能过时的 `origin/main` 或 ahead/behind 计数当最新状态。当前就在默认分支而提交不同时，提示先比较原成果与远端，再决定接续基线；保留未提交改动的优先级更高。不自动拉取、覆盖或接管写手，也不把差异武断说成“落后”。功能分支只显示参考；与默认分支不同不自动阻塞开发。PR、默认分支与发行查询独立保留成功结果，其中一个失败不丢弃其他已读信息。
 
 `--github` 现额外有界读取一次 `/releases/latest`，只投影版本、公开入口和附件元数据，不复制发布正文、作者或账号信息。`delivery` 单列发行候选及附件名/大小/GitHub记录的SHA256；来源、下载和设备检查仍为 `not_verified`，不选安装包、不自动下载安装。没有附件、未上传、草稿/预发行、查询失败和过时快照分别标注；发布查询失败仍保留PR与本地信息，返回2表示读取不完整。原有仅PR的连接器快照继续兼容；可选添加 `latest_release`（同一次读取的GitHub Release白名单字段；不可见或缺失时为null），没有该字段则明确未读取发行。含敏感查询参数、账号或其他仓库的链接不能成为发行候选。
 
-只有连接器时，代理把当前授权连接的 PR 字段规范化为以下快照，保存到任务自己的临时目录，传 `--github-json /tmp/project-prs.json`。`observed_at` 是实际读取时间；`complete` 是是否取得全部开放 PR，不能凭截断搜索设 true。`headRefOid` 必须是源仓库实际 head，不能填测试成功的旧 SHA。只记录必要的 PR 元数据，不复制正文、账户信息或密钥。
+只有连接器时，代理把当前授权连接的 PR 字段规范化为以下快照，保存到任务自己的临时目录，传 `--github-json /tmp/project-prs.json`。`observed_at` 是实际读取时间；`complete` 是是否取得全部开放 PR，不能凭截断搜索设 true。`headRefOid` 必须是源仓库实际 head，不能填测试成功的旧 SHA。可选添加 `default_branch: {"name":"main","head":"<实际40位提交>"}`，名称须来自仓库实际默认分支；读取失败写null，旧快照未提供时明确标 not_read。只记录必要元数据，不复制正文、账户信息或密钥。
 
 ```json
 {
