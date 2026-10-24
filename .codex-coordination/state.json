@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 7,
+  "revision": 8,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -91,6 +91,24 @@
       "updated_at": 1792815390,
       "history": [],
       "handoff": "Four files: optional PR-only recovery skips release request; not_requested remains unverified; full mode unchanged. Compact JSON preserves all decoded fields/values. Local70 regression tests pass, privacy0, diff check clean. Instrumented mocked-gh test counts2 to1 query; identical real-repo report2894 to1956 characters. Final GitHub CI required before merge."
+    },
+    "lean-recovery-integrate-20261024": {
+      "owner": "codex-lean-integrate-01a1688a",
+      "workspace": "win-lean-integrate-01a1688a",
+      "batch": "lean-recovery-20261024",
+      "role": "integrator",
+      "branch": "codex/lean-recovery-integration-20261024",
+      "scopes": [
+        "@integration",
+        "@publish"
+      ],
+      "base": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
+      "head": "604532c4a97cd20b4ca0ab49a3c9e82d7b80999e",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792822621,
+      "updated_at": 1792815421,
+      "history": []
     }
   },
   "batches": {
@@ -99,7 +117,8 @@
       "integrator": "focused-context-integrate-20261024"
     },
     "lean-recovery-20261024": {
-      "status": "open"
+      "status": "sealed",
+      "integrator": "lean-recovery-integrate-20261024"
     }
   }
 }
