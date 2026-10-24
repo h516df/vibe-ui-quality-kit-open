@@ -53,6 +53,8 @@
 
 ## Git 传输故障后的源码恢复
 
+检查入口默认只在检查子进程设置 `PYTHONDONTWRITEBYTECODE=1`，避免 Python 导入生成的缓存污染源码树。调用者显式设置的 `PYTHONDONTWRITEBYTECODE` 或 `PYTHONPYCACHEPREFIX` 沿用，不改父进程、系统 Python 或已有缓存。
+
 普通 Git 仍是首选。确认 TLS、代理或连接故障后，代理可使用现有 GitHub CLI 认证，通过 GitHub Git 数据 API 恢复同一源码；不需要用户改网络或重新登录。401/403、权限、安全拒绝和分支保护继续按原要求处理，不能用本入口绕过。
 
 `recover-git` 默认只检查本地并输出计划，不联网、不写工作区。代理核对目标后加 `--apply` 执行；这不是额外的用户审批步骤。已接入项目使用 `cloud/workflow.py`，工具库使用下列入口：
