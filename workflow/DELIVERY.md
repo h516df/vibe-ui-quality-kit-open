@@ -62,6 +62,7 @@
   "tag": "v1.0.0",
   "kind": "release",
   "require_latest": true,
+  "require_public": true,
   "target_commit": "替换为从 Git/API 读取的完整40位SHA",
   "assets": [{
     "name": "app.apk",
@@ -72,6 +73,8 @@
 ```
 
 这是带占位符的示意，不是可用发布证据。`kind` 也可明确为 `prerelease`，此时不要求 GitHub latest。每项可加项目根内的 `path`，额外核对本地文件；不要求把二进制复制进只有工作流的分支。
+
+用户已要求 GitHub 开源、公开下载时，代理在契约中设置 `require_public: true`，核验器先只读检查仓库确实公开；登录账号能读私有 Release 不能满足公开交付。读取失败、状态未知或仓库非公开均不能通过这项核验，也不会自动改变仓库可见性。私有分发按项目约定省略该字段或设 false，不增加公开要求及仓库查询。`public_repository_checked` 只证明已核对公开状态；匿名附件实际下载仍标 `anonymous_download_verification=not_verified`，继续复用现有发行工具完成大小/摘要回读，不能用公开元数据代替下载或手机安装。
 
 ```bash
 python3 cloud/verify_release.py --contract release/delivery-contract.json --receipt /tmp/release-receipt.json

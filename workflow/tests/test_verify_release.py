@@ -54,6 +54,37 @@ class ReleaseTests(unittest.TestCase):
         self.assertTrue(result['latest_checked'])
         self.assertEqual(result['assets'][0]['sha256'], self.contract['assets'][0]['sha256'])
         self.assertIn('not tested', result['verification_scope'])
+        self.assertFalse(result['public_repository_checked'])
+        self.assertNotIn('/repos/owner/project', self.calls)
+
+    def test_public_delivery_fails_before_release_checks_for_private_or_unknown_repository(self):
+        self.contract['require_public'] = True
+        for metadata in ({'private': True, 'visibility': 'private'}, {}, None,
+                         {'private': False, 'visibility': 'internal'}):
+            with self.subTest(metadata=metadata):
+                self.calls.clear()
+                self.responses['/repos/owner/project'] = metadata
+                with self.assertRaisesRegex(v.Failure, 'Public delivery requires a public repository'):
+                    self.check()
+                self.assertEqual(self.calls, ['/repos/owner/project'])
+
+    def test_public_repository_is_checked_without_claiming_anonymous_download(self):
+        self.contract['require_public'] = True
+        self.responses['/repos/owner/project'] = {'private': False, 'visibility': 'public'}
+        result = self.check()
+        self.assertTrue(result['public_repository_checked'])
+        self.assertEqual(result['anonymous_download_verification'], 'not_verified')
+        self.assertEqual(self.calls.count('/repos/owner/project'), 1)
+
+    def test_public_requirement_is_explicit_boolean_and_false_preserves_private_delivery(self):
+        for value in ('true', 1, None):
+            self.contract['require_public'] = value
+            with self.assertRaisesRegex(v.Failure, 'require_public must be a boolean'):
+                self.check()
+        self.assertEqual(self.calls, [])
+        self.contract['require_public'] = False
+        self.assertEqual(self.check()['status'], 'verified')
+        self.assertNotIn('/repos/owner/project', self.calls)
 
     def test_draft_or_prerelease_never_passes_formal_delivery(self):
         for key in ('draft', 'prerelease'):
