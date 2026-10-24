@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 10,
+  "revision": 11,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -134,6 +134,27 @@
         "ci_url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/2/checks",
         "probe_scope": "Remote command counts are from mocked-gh tests on real temporary Git repositories; output sizing used one real local report."
       }
+    },
+    "quality-outcomes-20261024": {
+      "owner": "codex-quality-outcomes-01a1688a",
+      "workspace": "win-quality-outcomes-01a1688a",
+      "batch": "quality-outcomes-20261024",
+      "role": "work",
+      "branch": "codex/quality-outcomes-20261024",
+      "scopes": [
+        "workflow/README.md",
+        "workflow/WORKFLOW.md",
+        "workflow/templates/DESIGN.md",
+        "workflow/templates/HANDOFF.md",
+        "workflow/templates/TASK.md"
+      ],
+      "base": "f66a445c22f3e46ac874618a840e9b340203a4e1",
+      "head": "f66a445c22f3e46ac874618a840e9b340203a4e1",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792823330,
+      "updated_at": 1792816130,
+      "history": []
     }
   },
   "batches": {
@@ -144,6 +165,9 @@
     "lean-recovery-20261024": {
       "status": "completed",
       "integrator": "lean-recovery-integrate-20261024"
+    },
+    "quality-outcomes-20261024": {
+      "status": "open"
     }
   }
 }
