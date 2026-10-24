@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 13,
+  "revision": 14,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -172,8 +172,21 @@
       "status": "active",
       "generation": 1,
       "lease_until": 1792823509,
-      "updated_at": 1792816309,
-      "history": []
+      "updated_at": 1792816320,
+      "history": [],
+      "receipt": {
+        "source_sha": "285d035b794d348b81fea67cb458846d7efffec3",
+        "members": {
+          "quality-outcomes-20261024": "285d035b794d348b81fea67cb458846d7efffec3"
+        },
+        "checks": [
+          {
+            "name": "Temporary-repository adoption, repeat preservation, five-file diff and privacy zero",
+            "status": "passed",
+            "source_sha": "285d035b794d348b81fea67cb458846d7efffec3"
+          }
+        ]
+      }
     }
   },
   "batches": {
