@@ -164,10 +164,10 @@ def main():
             p.add_argument('--branch')
         else:
             source = p.add_mutually_exclusive_group()
-            source.add_argument('--github', action='store_true', help='Read open PRs and latest release metadata using existing gh authentication; never logs in.')
+            source.add_argument('--github', action='store_true', help='Read open PRs, actual default branch tip and latest release metadata using existing gh authentication; never logs in.')
             source.add_argument('--github-json', help='Use a normalized snapshot from the current authorized GitHub connector.')
             p.add_argument('--focus', help='Read bounded tracked-file locations and declaration hints for the current question; no code bodies or model calls.')
-            p.add_argument('--skip-release', action='store_true', help='For implementation-only recovery with known delivery facts: read PRs without querying release metadata. Read releases before delivery.')
+            p.add_argument('--skip-release', action='store_true', help='For implementation-only recovery with known delivery facts: read PRs and source baseline without querying release metadata. Read releases before delivery.')
     args = parser.parse_args()
     try:
         if args.action == 'resume':
