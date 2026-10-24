@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 3,
+  "revision": 4,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -41,8 +41,26 @@
       "status": "active",
       "generation": 1,
       "lease_until": 1792821480,
-      "updated_at": 1792814280,
-      "history": []
+      "updated_at": 1792814316,
+      "history": [],
+      "receipt": {
+        "source_sha": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
+        "members": {
+          "focused-context-20261024": "def52fc3eb6a48f781d54b05e6d91b430aa0f306"
+        },
+        "checks": [
+          {
+            "name": "Final focused-context7 and template-adoption6 checks; unaffected baseline regression evidence retained",
+            "status": "passed",
+            "source_sha": "def52fc3eb6a48f781d54b05e6d91b430aa0f306"
+          },
+          {
+            "name": "Complete six-file diff reviewed and full workspace privacy scan zero",
+            "status": "passed",
+            "source_sha": "def52fc3eb6a48f781d54b05e6d91b430aa0f306"
+          }
+        ]
+      }
     }
   },
   "batches": {
