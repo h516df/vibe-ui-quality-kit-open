@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 4,
+  "revision": 5,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -19,10 +19,10 @@
       ],
       "base": "b81210de1c892caf96c16c68f3d0f605c4016059",
       "head": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
-      "status": "ready",
+      "status": "integrated",
       "generation": 1,
       "lease_until": 0,
-      "updated_at": 1792814250,
+      "updated_at": 1792814598,
       "history": [],
       "handoff": "Six files: bounded read-only focus context; latest-requirement and delta fields in existing templates. Local67 tests passed before declaration prioritization; final focused7 and template6 passed. One discovered prioritization issue failed then passed. Full workspace privacy0, diff check passed. No extra agent, model calls, service or persistent index. Final PR CI required before merge."
     },
@@ -38,10 +38,10 @@
       ],
       "base": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
       "head": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
-      "status": "active",
+      "status": "integrated",
       "generation": 1,
-      "lease_until": 1792821480,
-      "updated_at": 1792814316,
+      "lease_until": 0,
+      "updated_at": 1792814598,
       "history": [],
       "receipt": {
         "source_sha": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
@@ -60,12 +60,21 @@
             "source_sha": "def52fc3eb6a48f781d54b05e6d91b430aa0f306"
           }
         ]
+      },
+      "publication": {
+        "source_sha": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
+        "merge_sha": "8cf408862474edc4174a8358bdef588711433e3d",
+        "url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/1",
+        "ci": [
+          "https://github.com/h516df/vibe-ui-quality-kit-open/actions/runs/40060538895",
+          "https://github.com/h516df/vibe-ui-quality-kit-open/actions/runs/40060538854"
+        ]
       }
     }
   },
   "batches": {
     "focused-context-20261024": {
-      "status": "sealed",
+      "status": "completed",
       "integrator": "focused-context-integrate-20261024"
     }
   }
