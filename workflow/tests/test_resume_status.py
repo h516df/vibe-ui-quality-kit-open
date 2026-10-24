@@ -322,6 +322,42 @@ class ReleaseSummaryTests(unittest.TestCase):
                 self.assertEqual(result['delivery']['status'], 'unavailable' if failed else 'metadata_observed')
                 self.assertEqual((git('rev-parse', 'HEAD'), (root / '.git/index').read_bytes()), before)
 
+    def test_pr_only_recovery_uses_one_remote_query_and_keeps_acceptance_unverified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            git = self.repository(root)
+            before = (git('rev-parse', 'HEAD'), (root / '.git/index').read_bytes())
+            real_run, remote_calls = resume.run, []
+            def query(target, argv):
+                if argv[0] == 'gh':
+                    remote_calls.append(argv)
+                    self.assertEqual(argv[:2], ['gh', 'pr'])
+                    return json.dumps(snapshot()['pull_requests'])
+                return real_run(target, argv)
+            with patch.object(resume, 'run', side_effect=query):
+                result = resume.inspect(root, github=True, skip_release=True)
+            self.assertEqual(len(remote_calls), 1)
+            self.assertEqual(result['delivery']['status'], 'not_requested')
+            self.assertFalse(resume.recovery_brief(result)['remote_read_incomplete'])
+            self.assertEqual(result['product_acceptance'], 'not_verified')
+            self.assertEqual((git('rev-parse', 'HEAD'), (root / '.git/index').read_bytes()), before)
+
+    def test_cli_skip_release_ignores_supplied_release_without_marking_it_verified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.repository(root)
+            data = snapshot()
+            data.update(observed_at=dt.datetime.now(dt.timezone.utc).isoformat(), latest_release=release())
+            path = root / 'snapshot.json'
+            path.write_text(json.dumps(data))
+            result = subprocess.run([sys.executable, '-B', str(CLI), 'resume', '--target', tmp,
+                                     '--github-json', str(path), '--skip-release'], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertEqual(report['delivery']['status'], 'not_requested')
+            self.assertNotIn('assets', report['delivery'])
+            self.assertEqual(report['product_acceptance'], 'not_verified')
+
     def test_old_snapshot_compatible_and_stale_release_not_fresh(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
