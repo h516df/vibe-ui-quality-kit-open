@@ -221,8 +221,8 @@ def focus_context(root, query):
                         match = declaration.match(line[:240])
                         if match:
                             item['declarations'].append(dict(name=match[1][:80], line=number))
-                        if len(item['declarations']) == 6:
-                            break
+                    item['declarations'].sort(key=lambda d: (-sum(t in d['name'].casefold() for t in terms), d['line']))
+                    item['declarations'] = item['declarations'][:6]
         except (OSError, UnicodeError):
             item.update(status='requires_targeted_read', declarations=[])
         files.append(item)

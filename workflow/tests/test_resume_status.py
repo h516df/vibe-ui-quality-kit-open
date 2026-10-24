@@ -383,6 +383,13 @@ class FocusTests(unittest.TestCase):
         self.assertEqual(large['status'], 'requires_targeted_read')
         self.assertEqual(large['declarations'], [])
 
+    def test_matching_declaration_is_prioritized_beyond_the_file_header(self):
+        (self.root / 'save.py').write_text(''.join(f'def helper_{i}(): pass\n' for i in range(12))
+                                         + 'def target_save(): pass\n')
+        report = resume.focus_context(self.root, 'target_save')
+        self.assertEqual(report['files'][0]['declarations'][0], {'name':'target_save', 'line':13})
+        self.assertEqual(len(report['files'][0]['declarations']), 6)
+
     def test_invalid_focus_is_rejected_without_execution(self):
         for query in ('', 'x' * 201, '---'):
             with self.assertRaises(ValueError):
