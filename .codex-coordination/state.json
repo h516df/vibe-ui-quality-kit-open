@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 2,
+  "revision": 3,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -25,11 +25,30 @@
       "updated_at": 1792814250,
       "history": [],
       "handoff": "Six files: bounded read-only focus context; latest-requirement and delta fields in existing templates. Local67 tests passed before declaration prioritization; final focused7 and template6 passed. One discovered prioritization issue failed then passed. Full workspace privacy0, diff check passed. No extra agent, model calls, service or persistent index. Final PR CI required before merge."
+    },
+    "focused-context-integrate-20261024": {
+      "owner": "codex-focused-integrate-01a1688a",
+      "workspace": "win-focused-integrate-01a1688a",
+      "batch": "focused-context-20261024",
+      "role": "integrator",
+      "branch": "codex/focused-context-integration-20261024",
+      "scopes": [
+        "@integration",
+        "@publish"
+      ],
+      "base": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
+      "head": "def52fc3eb6a48f781d54b05e6d91b430aa0f306",
+      "status": "active",
+      "generation": 1,
+      "lease_until": 1792821480,
+      "updated_at": 1792814280,
+      "history": []
     }
   },
   "batches": {
     "focused-context-20261024": {
-      "status": "open"
+      "status": "sealed",
+      "integrator": "focused-context-integrate-20261024"
     }
   }
 }
