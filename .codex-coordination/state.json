@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 14,
+  "revision": 15,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -150,10 +150,10 @@
       ],
       "base": "f66a445c22f3e46ac874618a840e9b340203a4e1",
       "head": "285d035b794d348b81fea67cb458846d7efffec3",
-      "status": "ready",
+      "status": "integrated",
       "generation": 1,
       "lease_until": 0,
-      "updated_at": 1792816287,
+      "updated_at": 1792816361,
       "history": [],
       "handoff": "Five documentation/template files: criteria tied to observable results, representative journey and design decisions. Adoption tested in temporary Git repository; repeat preserves custom handoff; privacy zero; no runtime script changes."
     },
@@ -169,10 +169,10 @@
       ],
       "base": "285d035b794d348b81fea67cb458846d7efffec3",
       "head": "285d035b794d348b81fea67cb458846d7efffec3",
-      "status": "active",
+      "status": "integrated",
       "generation": 1,
-      "lease_until": 1792823509,
-      "updated_at": 1792816320,
+      "lease_until": 0,
+      "updated_at": 1792816361,
       "history": [],
       "receipt": {
         "source_sha": "285d035b794d348b81fea67cb458846d7efffec3",
@@ -186,6 +186,13 @@
             "source_sha": "285d035b794d348b81fea67cb458846d7efffec3"
           }
         ]
+      },
+      "publication": {
+        "source_sha": "285d035b794d348b81fea67cb458846d7efffec3",
+        "merge_sha": "a0ddf24f965ae16691b5d9f9c85ed038a59f0772",
+        "url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/3",
+        "ci_url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/3/checks",
+        "probe_scope": "Documentation adoption only; not business-app quality or device acceptance."
       }
     }
   },
@@ -199,7 +206,7 @@
       "integrator": "lean-recovery-integrate-20261024"
     },
     "quality-outcomes-20261024": {
-      "status": "sealed",
+      "status": "completed",
       "integrator": "quality-outcomes-integrate-20261024"
     }
   }
