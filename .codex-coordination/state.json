@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 19,
+  "revision": 20,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -211,10 +211,10 @@
       ],
       "base": "a0ddf24f965ae16691b5d9f9c85ed038a59f0772",
       "head": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
-      "status": "ready",
+      "status": "integrated",
       "generation": 1,
       "lease_until": 0,
-      "updated_at": 1792818615,
+      "updated_at": 1792819010,
       "history": [],
       "handoff": "Six files: reusable offline visual foundation, documented token decisions and source-filtering patterns. Browser evidence and privacy scan required before publication."
     },
@@ -230,10 +230,10 @@
       ],
       "base": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
       "head": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
-      "status": "active",
+      "status": "integrated",
       "generation": 1,
-      "lease_until": 1792825825,
-      "updated_at": 1792818908,
+      "lease_until": 0,
+      "updated_at": 1792819010,
       "history": [],
       "receipt": {
         "source_sha": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
@@ -247,6 +247,13 @@
             "source_sha": "d51420ca9816fb47f6ac9ed994171e9604ea9655"
           }
         ]
+      },
+      "publication": {
+        "source_sha": "d51420ca9816fb47f6ac9ed994171e9604ea9655",
+        "merge_sha": "b6238aa5c8d5b793117d55944da6661573e330cb",
+        "url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/4",
+        "ci_url": "https://github.com/h516df/vibe-ui-quality-kit-open/pull/4/checks",
+        "probe_scope": "Reusable browser reference: desktop/mobile, light/dark, 200 percent text and targeted interactions. Not business-app, native-device, persistence or user aesthetic acceptance."
       }
     }
   },
@@ -264,7 +271,7 @@
       "integrator": "quality-outcomes-integrate-20261024"
     },
     "oss-design-20261024": {
-      "status": "sealed",
+      "status": "completed",
       "integrator": "oss-design-integrate-20261024"
     }
   }
