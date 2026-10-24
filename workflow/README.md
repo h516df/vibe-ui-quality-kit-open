@@ -59,15 +59,16 @@
 
 ```bash
 python3 workflow/scripts/workflow.py recover-git --target <repo> --operation publish --expected-head <source-sha> --apply
+python3 workflow/scripts/workflow.py recover-git --target <repo> --operation publish --expected-head <next-source-sha> --expected-remote-head <current-task-tip-sha> --apply
 python3 workflow/scripts/workflow.py recover-git --target <repo> --operation sync --expected-head <old-local-sha> --remote-head <reviewed-merge-sha> --apply
 ```
 
-- 发布限已有公开仓库、干净工作区、一个未签名的非合并源码提交，父提交须为当前默认分支。只创建新的任务分支，不发布默认分支，不覆盖已有分支。支持 UTF-8 普通文件和删除，限 100 文件、单文件 1 MiB、合计 5 MiB；二进制、子模块和已签名源码提交沿原 Git 路径处理，不能剥掉签名。
+- 发布限已有公开仓库、干净工作区、一个未签名的非合并源码提交。默认只从当前默认分支创建新任务分支；接续已存在的同一任务分支时，代理现场读取其 tip，显式传 `--expected-remote-head`，它必须恰好是本地提交的唯一父提交。只做非强制快进，不发布默认分支，不改写其他写手的提交。支持 UTF-8 普通文件和删除，限 100 文件、单文件 1 MiB、合计 5 MiB；二进制、子模块和已签名源码提交沿原 Git 路径处理，不能剥掉签名。
 - 发送前扫描本次提交中的新增内容和提交说明，忽略未提交配置；创建远端 ref 前核对完整 tree 和原 commit SHA。相同分支已存在且 SHA 一致时直接返回 `already_present`，不再写入。API 回执不明先读回 ref，不盲重放。
 - 合并同步需要明确的已审阅 SHA、干净的默认分支和本地已有的树及父提交。缺少合并对象时，只从 GitHub 已验证签名的 payload 重建并核对原始哈希，再执行快进；不 reset，不选择或合并 PR。重复执行返回 `already_current`，不写远端。
 - 默认继承现有网络。已确认直连可用才按需加 `--network direct`，只改变该子进程环境；CLI 不在 PATH 时用 `--gh <existing-gh>`，不会安装、登录或扩大权限。正常发布前的隐私、许可证和项目验收仍适用。
 
-协议依据：[GitHub Git Trees API](https://docs.github.com/en/rest/git/trees)。本入口仅处理上述源码传输恢复，不表示安装包发行或目标设备验收已完成。
+协议依据：[GitHub Git Trees API](https://docs.github.com/en/rest/git/trees)、[非强制更新 ref](https://docs.github.com/en/rest/git/refs#update-a-reference)。服务器拒绝并发发生的分叉更新；回执不明后先读精确任务 ref，相同 SHA 只读接续，不自动重放。传入已存在任务 tip 而远端分支缺失时停止，不自行重建。本入口仅处理上述源码传输恢复，不表示安装包发行或目标设备验收已完成。
 
 ## 云端接入
 

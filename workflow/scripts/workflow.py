@@ -174,6 +174,7 @@ def main():
     recovery.add_argument('--target', default='.')
     recovery.add_argument('--operation', choices=('publish', 'sync'), required=True)
     recovery.add_argument('--expected-head', required=True)
+    recovery.add_argument('--expected-remote-head', help='Explicit direct parent on the existing task branch for one-commit publication; never force updates.')
     recovery.add_argument('--remote-head', help='Exact reviewed merge SHA for sync; never selects the latest task.')
     recovery.add_argument('--apply', action='store_true')
     recovery.add_argument('--network', choices=('inherit', 'direct'), default='inherit')
