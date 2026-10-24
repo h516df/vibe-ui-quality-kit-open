@@ -1,7 +1,7 @@
 {
   "version": 1,
   "project": "h516df/vibe-ui-quality-kit-open",
-  "revision": 11,
+  "revision": 12,
   "tasks": {
     "focused-context-20261024": {
       "owner": "codex-focused-context-01a1688a",
@@ -149,12 +149,13 @@
         "workflow/templates/TASK.md"
       ],
       "base": "f66a445c22f3e46ac874618a840e9b340203a4e1",
-      "head": "f66a445c22f3e46ac874618a840e9b340203a4e1",
-      "status": "active",
+      "head": "285d035b794d348b81fea67cb458846d7efffec3",
+      "status": "ready",
       "generation": 1,
-      "lease_until": 1792823330,
-      "updated_at": 1792816130,
-      "history": []
+      "lease_until": 0,
+      "updated_at": 1792816287,
+      "history": [],
+      "handoff": "Five documentation/template files: criteria tied to observable results, representative journey and design decisions. Adoption tested in temporary Git repository; repeat preserves custom handoff; privacy zero; no runtime script changes."
     }
   },
   "batches": {
