@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Cloud workflow bootstrap/check/receipt. Python standard library; no credentials."""
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 from pathlib import Path
@@ -104,6 +105,39 @@ def validate_config(config):
                 not isinstance(timeout, int) or isinstance(timeout, bool) or not 1 <= timeout <= 900):
             raise ValueError('Invalid check name/level/argv/timeout, or duplicate name.')
         names.add(name)
+        if ('parallel_safe' in item and not isinstance(item['parallel_safe'], bool) or
+                'resource_group' in item and
+                (not isinstance(item['resource_group'], str) or not item['resource_group'].strip())):
+            raise ValueError('parallel_safe must be boolean; resource_group must be a nonempty string.')
+
+
+def check_batches(selected, jobs):
+    """Only explicitly independent checks may overlap; unknown work is a barrier."""
+    batch = []
+    for item in selected:
+        group = item.get('resource_group')
+        if (not item.get('parallel_safe', False) or len(batch) >= jobs or
+                group and any(other.get('resource_group') == group for other in batch)):
+            if batch:
+                yield batch
+                batch = []
+        if not item.get('parallel_safe', False):
+            yield [item]
+        else:
+            batch.append(item)
+    if batch:
+        yield batch
+
+
+def run_check(item, root, environment):
+    print('RUN: ' + item['name'], flush=True)
+    try:
+        result = subprocess.run(item['command'], cwd=root,
+                                timeout=item.get('timeout_seconds', 120), env=environment)
+        return result.returncode == 0
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        print(f"FAIL: {item['name']} ({type(exc).__name__})", file=sys.stderr)
+        return False
 
 
 def check(args):
@@ -122,15 +156,17 @@ def check(args):
     environment = dict(os.environ)
     if 'PYTHONPYCACHEPREFIX' not in environment:
         environment.setdefault('PYTHONDONTWRITEBYTECODE', '1')
-    for item in config['checks']:
-        if args.level == 'quick' and item['level'] != 'quick':
-            continue
-        print('RUN: ' + item['name'], flush=True)
-        result = subprocess.run(item['command'], cwd=root, timeout=item.get('timeout_seconds', 120), env=environment)
-        if result.returncode:
-            print('FAIL: ' + item['name'], file=sys.stderr)
+    selected = [item for item in config['checks'] if args.level != 'quick' or item['level'] == 'quick']
+    for batch in check_batches(selected, getattr(args, 'jobs', 2)):
+        if len(batch) == 1:
+            passed = [run_check(batch[0], root, environment)]
+        else:
+            with ThreadPoolExecutor(max_workers=len(batch)) as pool:
+                passed = list(pool.map(lambda item: run_check(item, root, environment), batch))
+        if not all(passed):
+            print('FAIL: ' + ', '.join(item['name'] for item, ok in zip(batch, passed) if not ok), file=sys.stderr)
             return 1
-        count += 1
+        count += len(batch)
     if not count:
         print('NOT CONFIGURED: no checks selected for this level.', file=sys.stderr)
         return 2
@@ -165,6 +201,8 @@ def main():
             p.add_argument('--apply', action='store_true')
         elif name == 'check':
             p.add_argument('--level', choices=['quick', 'core'], default='quick')
+            p.add_argument('--jobs', type=int, choices=range(1, 5), default=2,
+                           help='At most 1-4 explicitly parallel-safe checks; unmarked checks run alone.')
         elif name == 'receipt':
             p.add_argument('--remote', default='origin')
             p.add_argument('--branch')

@@ -1,10 +1,10 @@
 name: Reusable workflow checks
 on:
   pull_request:
-    paths: ['workflow/**', '.github/workflows/workflow-kit.yml']
+    paths: ['workflow/**', '.ai-workflow.json', '.github/workflows/workflow-kit.yml']
   push:
     branches: [main]
-    paths: ['workflow/**', '.github/workflows/workflow-kit.yml']
+    paths: ['workflow/**', '.ai-workflow.json', '.github/workflows/workflow-kit.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,4 +22,5 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
-      - run: python3 -m unittest discover -s workflow/tests -v
+      - name: Run every toolkit test in two independent groups
+        run: python3 workflow/scripts/workflow.py check --level core --jobs 2
