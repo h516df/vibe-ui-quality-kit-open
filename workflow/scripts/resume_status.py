@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Read-only project recovery hints. No checkout, fetch, task dispatch or model calls."""
 import datetime as dt
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -276,9 +277,35 @@ def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=Fal
     elif github:
         snapshot = dict(repository=repository, observed_at=dt.datetime.now(dt.timezone.utc).isoformat(),
                         complete=False, pull_requests=[])
+        owner, name = repository.split('/')
+        # Independent remote reads can overlap. Preserve each result/failure separately:
+        # a failed PR request must not discard a valid baseline or release response.
+        commands = {
+            'prs': ['gh', 'pr', 'list', '--repo', 'github.com/' + repository,
+                    '--state', 'open', '--limit', '100', '--json', FIELDS],
+            'baseline': ['gh', 'api', 'graphql', '-f', 'query=' + BASELINE_QUERY,
+                         '-f', 'owner=' + owner, '-f', 'name=' + name,
+                         '--jq', '.data.repository.defaultBranchRef'],
+        }
+        if not skip_release:
+            commands['release'] = ['gh', 'api', f'repos/{repository}/releases/latest',
+                                   '--jq', RELEASE_FIELDS]
+        outputs, failures = {}, {}
+        with ThreadPoolExecutor(max_workers=len(commands)) as pool:
+            futures = {key: pool.submit(run, root, argv) for key, argv in commands.items()}
+            for key, future in futures.items():
+                try:
+                    outputs[key] = future.result()
+                except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                    failures[key] = exc
+
+        def remote_json(key):
+            if key in failures:
+                raise failures[key]
+            return json.loads(outputs[key])
+
         try:
-            rows = json.loads(run(root, ['gh', 'pr', 'list', '--repo', 'github.com/' + repository,
-                                        '--state', 'open', '--limit', '100', '--json', FIELDS]))
+            rows = remote_json('prs')
             if not isinstance(rows, list):
                 raise ValueError('Invalid PR list.')
             snapshot.update(complete=len(rows) < 100, pull_requests=rows)
@@ -288,18 +315,14 @@ def inspect(root, snapshot_path=None, github=False, focus=None, skip_release=Fal
             result['github'] = dict(status='unavailable', reason=reason,
                                     next_action='read_related_pull_requests_with_existing_connector')
             pr_failed = True
-        owner, name = repository.split('/')
         try:
-            data = json.loads(run(root, ['gh', 'api', 'graphql', '-f', 'query=' + BASELINE_QUERY,
-                                         '-f', 'owner=' + owner, '-f', 'name=' + name,
-                                         '--jq', '.data.repository.defaultBranchRef']))
+            data = remote_json('baseline')
             snapshot['default_branch'] = dict(name=data['name'], head=data['target']['oid'])
         except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError):
             snapshot['default_branch'] = None
         if not skip_release:
             try:
-                snapshot['latest_release'] = json.loads(run(root, ['gh', 'api', f'repos/{repository}/releases/latest',
-                                                                  '--jq', RELEASE_FIELDS]))
+                snapshot['latest_release'] = remote_json('release')
             except (OSError, ValueError, subprocess.SubprocessError):
                 snapshot['latest_release'] = None
                 release_reason = 'query_failed'
