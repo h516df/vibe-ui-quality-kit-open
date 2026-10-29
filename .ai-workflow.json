@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "workflow_version": "0.1",
+  "source": "h516df/vibe-ui-quality-kit-open/workflow",
+  "checks": [
+    {
+      "name": "test-shard-coverage",
+      "level": "quick",
+      "command": ["python3", "-c", "import fnmatch,pathlib; patterns=['test_[a-m]*.py','test_[!a-m]*.py']; bad=[p.name for p in pathlib.Path('workflow/tests').glob('test*.py') if sum(fnmatch.fnmatchcase(p.name,x) for x in patterns)!=1]; assert not bad, 'Tests must belong to exactly one shard: '+str(bad)"],
+      "timeout_seconds": 15
+    },
+    {
+      "name": "workflow-tests-a",
+      "level": "core",
+      "parallel_safe": true,
+      "resource_group": "toolkit-fixtures-a",
+      "command": ["python3", "-m", "unittest", "discover", "-s", "workflow/tests", "-p", "test_[a-m]*.py", "-v"],
+      "timeout_seconds": 180
+    },
+    {
+      "name": "workflow-tests-b",
+      "level": "core",
+      "parallel_safe": true,
+      "resource_group": "toolkit-fixtures-b",
+      "command": ["python3", "-m", "unittest", "discover", "-s", "workflow/tests", "-p", "test_[!a-m]*.py", "-v"],
+      "timeout_seconds": 180
+    }
+  ]
+}
