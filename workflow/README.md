@@ -91,7 +91,7 @@ python3 cloud/workflow.py check --level core
 python3 cloud/workflow.py receipt --remote origin --branch task-branch
 ```
 
-检查入口支持 `--jobs 1..4`（默认2）。代理先核对命令是否独立，再在配置中给可重叠的检查加 `"parallel_safe": true`；不要求用户挑命令或配并发。未标记检查单独运行，共用同一非空 `resource_group` 的检查串行。一个批次失败后收回已启动的结果，不启动后续批次，不以减少测试数量提速。工具库自身CI已将全部测试分成两组并行，先验证每个测试文件恰好落入一组，未知命名会失败而不是漏测。
+检查入口支持 `--jobs 1..4`（默认2）。代理先核对命令是否独立，再在配置中给可重叠的检查加 `"parallel_safe": true`；不要求用户挑命令或配并发。未标记检查单独运行，共用同一非空 `resource_group` 的检查串行。短检查完成后，空闲槽位可接续下一项独立检查，不再等待整批结束；收到失败结果后停止启动新检查并收回已在运行的结果，不以减少测试数量提速。工具库自身CI已将全部测试分成两组并行，先验证每个测试文件恰好落入一组，未知命名会失败而不是漏测。
 
 源码 `receipt` 不等于产物发布成功。GitHub 发布按 [DELIVERY](DELIVERY.md) 的显式契约执行 `python3 cloud/verify_release.py --contract release/delivery-contract.json --receipt /tmp/release-receipt.json`；失败不能交付旧的成功回执。
 
