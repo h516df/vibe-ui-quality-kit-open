@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cloud workflow bootstrap/check/receipt. Python standard library; no credentials."""
 import argparse
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 import json
 import os
 from pathlib import Path
@@ -111,22 +111,35 @@ def validate_config(config):
             raise ValueError('parallel_safe must be boolean; resource_group must be a nonempty string.')
 
 
-def check_batches(selected, jobs):
-    """Only explicitly independent checks may overlap; unknown work is a barrier."""
-    batch = []
-    for item in selected:
-        group = item.get('resource_group')
-        if (not item.get('parallel_safe', False) or len(batch) >= jobs or
-                group and any(other.get('resource_group') == group for other in batch)):
-            if batch:
-                yield batch
-                batch = []
-        if not item.get('parallel_safe', False):
-            yield [item]
-        else:
-            batch.append(item)
-    if batch:
-        yield batch
+def run_checks(selected, jobs, root, environment):
+    """Refill idle slots without crossing serial barriers or resource ownership."""
+    remaining = iter(selected)
+    next_item = next(remaining, None)
+    running = {}
+    results = []
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        while next_item is not None or running:
+            while next_item is not None and len(running) < jobs:
+                group = next_item.get('resource_group')
+                if running and (
+                    not next_item.get('parallel_safe', False)
+                    or any(not item.get('parallel_safe', False) for item in running.values())
+                    or group and any(item.get('resource_group') == group for item in running.values())
+                ):
+                    break
+                item = next_item
+                running[pool.submit(run_check, item, root, environment)] = item
+                next_item = next(remaining, None)
+                if not item.get('parallel_safe', False):
+                    break
+            done, _ = wait(running, return_when=FIRST_COMPLETED)
+            completed = [(running.pop(future), future.result()) for future in done]
+            results.extend(completed)
+            if any(not ok for _, ok in completed):
+                # Collect already-started work, but never dispatch a later check.
+                results.extend((item, future.result()) for future, item in running.items())
+                break
+    return results
 
 
 def run_check(item, root, environment):
@@ -157,16 +170,12 @@ def check(args):
     if 'PYTHONPYCACHEPREFIX' not in environment:
         environment.setdefault('PYTHONDONTWRITEBYTECODE', '1')
     selected = [item for item in config['checks'] if args.level != 'quick' or item['level'] == 'quick']
-    for batch in check_batches(selected, getattr(args, 'jobs', 2)):
-        if len(batch) == 1:
-            passed = [run_check(batch[0], root, environment)]
-        else:
-            with ThreadPoolExecutor(max_workers=len(batch)) as pool:
-                passed = list(pool.map(lambda item: run_check(item, root, environment), batch))
-        if not all(passed):
-            print('FAIL: ' + ', '.join(item['name'] for item, ok in zip(batch, passed) if not ok), file=sys.stderr)
-            return 1
-        count += len(batch)
+    results = run_checks(selected, getattr(args, 'jobs', 2), root, environment)
+    failed = [item['name'] for item, ok in results if not ok]
+    if failed:
+        print('FAIL: ' + ', '.join(failed), file=sys.stderr)
+        return 1
+    count = len(results)
     if not count:
         print('NOT CONFIGURED: no checks selected for this level.', file=sys.stderr)
         return 2
