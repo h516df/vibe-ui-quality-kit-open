@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -323,6 +324,40 @@ class ReleaseSummaryTests(unittest.TestCase):
                 self.assertEqual(result['github']['status'], 'observed')
                 self.assertEqual(result['delivery']['status'], 'unavailable' if failed else 'metadata_observed')
                 self.assertEqual((git('rev-parse', 'HEAD'), (root / '.git/index').read_bytes()), before)
+
+    def test_independent_gh_reads_overlap_without_changing_readonly_results(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            git = self.repository(root)
+            head = git('rev-parse', 'HEAD').strip()
+            index_before = (root / '.git/index').read_bytes()
+            real_run = resume.run
+            for skip_release in (False, True):
+                remote_count = 2 if skip_release else 3
+                barrier = threading.Barrier(remote_count)
+                calls = []
+
+                def query(target, argv):
+                    if argv[0] != 'gh':
+                        return real_run(target, argv)
+                    calls.append(argv)
+                    # Sequential remote calls cannot pass this barrier.
+                    barrier.wait(timeout=3)
+                    if argv[:2] == ['gh', 'pr']:
+                        return json.dumps(snapshot()['pull_requests'])
+                    if argv[:3] == ['gh', 'api', 'graphql']:
+                        return json.dumps(dict(name='main', target=dict(oid=head)))
+                    return json.dumps(release())
+
+                with patch.object(resume, 'run', side_effect=query):
+                    result = resume.inspect(root, github=True, skip_release=skip_release)
+                self.assertEqual(len(calls), remote_count)
+                self.assertEqual(result['github']['status'], 'observed')
+                self.assertEqual(result['source_baseline']['relation'], 'same')
+                self.assertEqual(result['delivery']['status'],
+                                 'not_requested' if skip_release else 'metadata_observed')
+                self.assertEqual(git('rev-parse', 'HEAD').strip(), head)
+                self.assertEqual((root / '.git/index').read_bytes(), index_before)
 
     def test_implementation_recovery_reads_prs_and_baseline_without_release(self):
         with tempfile.TemporaryDirectory() as tmp:
