@@ -40,6 +40,7 @@
 - [MULTI_CODEX.md](MULTI_CODEX.md)：多个独立 Codex 的任务领取、范围冲突、移交与统一整合；[coordinate.py](scripts/coordinate.py) 提供 Git 原子更新和连接器计划模式。
 
 - [INTAKE.md](INTAKE.md)：意图判断、唯一需求池、批次与状态；[需求池模板](templates/BACKLOG.md)。
+- [TEMP_DOWNLOAD.md](TEMP_DOWNLOAD.md)：非 GitHub 一次性 APK 临时直链的托管契约、并发与字节验收；[verify_temporary_download.py](scripts/verify_temporary_download.py) 仅消耗专用测试令牌，不负责部署和签发。
 - [DELIVERY.md](DELIVERY.md)：用户交付目标、构建/鉴权故障分层、正式发行状态与原生附件核验；[verify_release.py](scripts/verify_release.py) 生成只读发布回执。
 - [CLOUD_CAPABILITIES.md](CLOUD_CAPABILITIES.md)：新项目的能力核对、已有 Make 建仓通道及实际验证边界。
 - [安卓交付模板](templates/ANDROID_DELIVERY.md)：按需核对签名恢复、更新、数据迁移和实体手机；不是已实现功能。
