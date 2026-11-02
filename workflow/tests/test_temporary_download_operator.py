@@ -21,6 +21,7 @@ class OperatorTests(unittest.TestCase):
                          'https://example.workers.dev')
         for url in ('http://example.com', 'https://github.com',
                     'https://localhost', 'https://example.com/path',
+                    'https://127.0.0.1', 'https://raw.githubusercontent.com/a',
                     'https://u:p@example.com', 'https://example.com?token=x'):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 operator.base_url(url)

@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -30,8 +31,17 @@ def base_url(raw):
             or parsed.query or parsed.fragment or parsed.username or parsed.password
             or parsed.port not in (None, 443)
             or host == 'github.com' or host.endswith('.github.com')
+            or host.endswith('.githubusercontent.com')
+            or host.endswith('.github.io')
             or host == 'localhost' or host.endswith('.local')):
         raise ValueError('Endpoint must be an independent HTTPS service origin.')
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        pass
+    else:
+        if not ip.is_global:
+            raise ValueError('Endpoint cannot be a private or reserved IP.')
     return raw.rstrip('/')
 
 
