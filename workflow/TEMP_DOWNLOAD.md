@@ -1,6 +1,6 @@
 # 非 GitHub 一次性 APK 临时直链：交付契约与验收
 
-状态：**未部署服务**。本文件与脚本只补充可执行的验收手段，不代表已经具备非 GitHub 托管或可以生成用户链接。沿用项目现有正式签名、GitHub Releases 和 APK 下载回读门禁。
+状态：**未部署服务**。已有可选的 [Cloudflare R2 + D1 + Worker 服务实现](temporary-download-worker/README.md)及离线测试，但尚未取得真实托管/账号授权、完成实际 APK 上线或可用直链验收。已有测试不代表能生成用户下载链接。沿用项目现有正式签名、GitHub Releases 和 APK 下载回读门禁。
 
 ## 必须具备的服务能力
 

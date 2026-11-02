@@ -1,0 +1,7 @@
+.dev.vars*
+.env*
+.wrangler/
+node_modules/
+*.apk
+issued*.json
+*.secret.json
