@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Trusted operator client. Never send ADMIN_TOKEN or a recipient link to CI logs."""
+"""Trusted APK operator. Never send ADMIN_TOKEN or a recipient link to CI logs."""
 
 import argparse
 import hashlib

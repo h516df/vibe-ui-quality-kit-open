@@ -9,7 +9,7 @@ import unittest
 
 
 SOURCE = (Path(__file__).resolve().parents[1] / 'temporary-download-worker'
-          / 'operator.py')
+          / 'apk_operator.py')
 spec = importlib.util.spec_from_file_location('download_operator', SOURCE)
 operator = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(operator)

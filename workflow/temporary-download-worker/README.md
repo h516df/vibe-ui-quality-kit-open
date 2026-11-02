@@ -25,6 +25,20 @@
 
 ## 首次部署（须先有账号授权）
 
+### 推荐：手动触发的 GitHub Actions 首次部署
+
+已有 `.github/workflows/apk-once-bootstrap.yml`，**仅 `workflow_dispatch` 可启动**，不会跟随普通开发 PR、push 或 Android Release 运行；没有授权密钥时不会调用 Cloudflare。由用户在 `h516df/vibe-ui-quality-kit-open` 的 Settings → Secrets and variables → Actions 中一次性录入：
+
+- `CLOUDFLARE_ACCOUNT_ID`：从 Cloudflare 控制台读取的 32 位账号 ID。
+- `CLOUDFLARE_API_TOKEN`：Cloudflare API Token，临时限定此账号，权限仅为新建/部署 Worker 的 Workers Admin、创建 D1 的 D1 Write、创建/读写 R2 的 Workers R2 Storage Write。设置短期有效期；不要使用 Global API Key，不要给整个 Cloudflare 组织的其他账号权限。
+- `APK_ONCE_ADMIN_TOKEN`：独立、安全随机的至少 32 字节管理密钥，**不同于** Cloudflare API Token，稍后用于已部署 Worker 的 APK 令牌签发。只能保存在 GitHub Secret 和 Cloudflare Worker Secret，不能放入聊天、Issue 或 CI 日志。
+
+由代理在 GitHub 的 Actions 页面选择 “APK one-time host bootstrap (manual, free-only)”，输入精确 `FREE_ONLY` 后手动触发。此流程先检查 Node 服务和 Python 幂等保护，再查询账号中现有资源，缺失时只新建 `apk-once-*` 私有 R2、D1 和 Worker；已存在的同名资源只接续，不删除，不开启公开 R2，最后只验证公开健康检查。Cloudflare 账号必须先启用默认 `workers.dev` 子域；若未启用则在任何写操作前停止，不擅自改账号级子域配置。部署返回的 `origin` 不包含下载令牌，可存档到任务回执。
+
+**初次上线后及时撤销/到期临时创建权限**，后续日常部署使用仅限该 Worker 的 Editor，后续对象上传按需创建单桶最小权限。持有 Cloudflare Token 本身不等于已验证 APK 交付。涉及付费启用、绑定银行卡或超出免费额度时停止，由本人决定。
+
+### 备用：有权限的受信任云端命令行
+
 从本目录执行：
 
 ```bash
@@ -55,29 +69,29 @@ npx wrangler r2 object get apk-once-private/jiyixia/v0.23/app.apk \
 
 # 将以下 env secret 仅注入可信进程；不要使用 shell 的 echo 将值写进日志。
 # export APK_ONCE_ADMIN_TOKEN=<从安全凭据渠道注入，不写进仓库>
-python3 operator.py --endpoint https://YOUR-WORKER.workers.dev register \
+python3 apk_operator.py --endpoint https://YOUR-WORKER.workers.dev register \
   --apk /tmp/original.apk --r2-readback /tmp/r2-readback.apk \
   --object-key jiyixia/v0.23/app.apk --filename jiyixia-v0.23.apk
 
-python3 operator.py --endpoint https://YOUR-WORKER.workers.dev issue \
+python3 apk_operator.py --endpoint https://YOUR-WORKER.workers.dev issue \
   --object-key jiyixia/v0.23/app.apk --kind canary \
   --request-id RELEASE_CANARY_UNIQUE_STABLE_ID --output /tmp/issued-canary.secret.json
-python3 operator.py --endpoint https://YOUR-WORKER.workers.dev canary \
+python3 apk_operator.py --endpoint https://YOUR-WORKER.workers.dev canary \
   --issued /tmp/issued-canary.secret.json
 
 # 单独签发过期测试令牌：真实经过 60 分钟后才能运行 expiry 检查。
-python3 operator.py --endpoint https://YOUR-WORKER.workers.dev issue \
+python3 apk_operator.py --endpoint https://YOUR-WORKER.workers.dev issue \
   --object-key jiyixia/v0.23/app.apk --kind expiry \
   --request-id RELEASE_EXPIRY_UNIQUE_STABLE_ID --output /tmp/issued-expiry.secret.json
 # 等真实 60 分钟以上后，单次执行；不长时间占用 CI Runner：
-python3 operator.py --endpoint https://YOUR-WORKER.workers.dev expiry \
+python3 apk_operator.py --endpoint https://YOUR-WORKER.workers.dev expiry \
   --issued /tmp/issued-expiry.secret.json
 
 # 上面测试都通过后，才为用户单独签发未消耗的 B 链接。
-python3 operator.py --endpoint https://YOUR-WORKER.workers.dev issue \
+python3 apk_operator.py --endpoint https://YOUR-WORKER.workers.dev issue \
   --object-key jiyixia/v0.23/app.apk --kind recipient \
   --request-id RELEASE_RECIPIENT_UNIQUE_STABLE_ID --output /tmp/issued-recipient.secret.json
-python3 operator.py --endpoint https://YOUR-WORKER.workers.dev inspect \
+python3 apk_operator.py --endpoint https://YOUR-WORKER.workers.dev inspect \
   --issued /tmp/issued-recipient.secret.json
 ```
 
