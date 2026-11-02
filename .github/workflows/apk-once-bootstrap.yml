@@ -1,0 +1,42 @@
+name: APK one-time host bootstrap (manual, free-only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type FREE_ONLY to provision only the isolated APK host resources'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apk-once-host-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    if: ${{ inputs.confirmation == 'FREE_ONLY' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      APK_ONCE_ADMIN_TOKEN: ${{ secrets.APK_ONCE_ADMIN_TOKEN }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+      - name: Offline service and provisioning checks
+        run: |
+          node workflow/temporary-download-worker/tests/worker.test.js
+          python3 -m unittest discover -s workflow/tests -p 'test_temporary_download_bootstrap.py' -v
+      - name: Provision dedicated free-tier resources and check health
+        run: python3 workflow/temporary-download-worker/bootstrap.py --apply
