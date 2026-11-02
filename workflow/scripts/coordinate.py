@@ -337,8 +337,13 @@ class GitStore:
         environ = dict(os.environ, GIT_TERMINAL_PROMPT='0')
         if env:
             environ.update(env)
-        r = subprocess.run(['git', '-C', self.root, *args], input=data,
-                           capture_output=True, text=True, env=environ)
+        try:
+            r = subprocess.run(['git', '-C', self.root, *args], input=data,
+                               capture_output=True, text=True, env=environ, timeout=40)
+        except subprocess.TimeoutExpired:
+            # A timed-out push may have reached the remote; never replay it here.
+            raise Conflict('Git ' + args[0] + ' timed out after 40 seconds; '
+                           'inspect remote state before retrying.') from None
         if check and r.returncode:
             raise Conflict('Git ' + args[0] + ' failed; check connection/permissions without exposing credentials.')
         return r

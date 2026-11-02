@@ -13,8 +13,12 @@ BEGIN, END = '<!-- ai-workflow:start -->', '<!-- ai-workflow:end -->'
 
 
 def git(root, *args):
-    return subprocess.run(['git', '-C', str(root), *args], text=True,
-                          capture_output=True, check=True).stdout.strip()
+    try:
+        return subprocess.run(['git', '-C', str(root), *args], text=True,
+                              capture_output=True, check=True, timeout=40).stdout.strip()
+    except subprocess.TimeoutExpired:
+        # Do not print argv/output: remote URLs can contain credentials.
+        raise ValueError('Git operation timed out after 40 seconds; no automatic retry.') from None
 
 
 def repository(target):
