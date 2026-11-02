@@ -5,3 +5,4 @@ if [[ -f .cloud/env.sh ]]; then source .cloud/env.sh; fi
 python3 -m json.tool .devcontainer/devcontainer.json >/dev/null
 git diff --check
 pwsh -NoProfile -File cloud/check-powershell.ps1
+node workflow/temporary-download-worker/tests/worker.test.js

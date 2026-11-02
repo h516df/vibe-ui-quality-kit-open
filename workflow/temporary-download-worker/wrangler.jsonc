@@ -1,0 +1,21 @@
+{
+  // Replace the D1 ID after creating the database; never add an API token here.
+  "name": "apk-once-download",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "observability": { "enabled": false },
+  "vars": {
+    "PUBLIC_BASE_URL": "https://REPLACE_WITH_YOUR_WORKER.workers.dev"
+  },
+  "r2_buckets": [
+    { "binding": "APKS", "bucket_name": "apk-once-private" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "apk-once-tokens",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ]
+}
